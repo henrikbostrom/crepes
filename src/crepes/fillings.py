@@ -4,12 +4,11 @@ Helper functions to generate residuals and sigmas, with and without
 out-of-bag calibration, for conformal regressors and conformal
 predictive systems.
 
-Author : Henrik Boström (bostromh@kth.se)
+Author: Henrik Boström (bostromh@kth.se)
 
 Copyright 2021 Henrik Boström
 
 License: BSD 3 clause
-
 """
 
 # To do:
