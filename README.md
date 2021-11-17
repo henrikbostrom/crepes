@@ -1,6 +1,6 @@
 # crepes
 
-## Conformal regressors and predictive systems
+### Conformal regressors and predictive systems
 
 Install with:
 
