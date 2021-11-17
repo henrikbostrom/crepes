@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>crepes API documentation</title>
+<meta name="description" content="Conformal regressors and predictive systems (crepes) …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>crepes</code></h1>
+</header>
+<section id="section-intro">
+<p>Conformal regressors and predictive systems (crepes)</p>
+<p>Routines that implement conformal regressors and conformal predictive
+systems, which transform point predictions into prediction intervals
+and cumulative distributions, respectively.</p>
+<p>Author: Henrik Boström (bostromh@kth.se)</p>
+<p>Copyright 2021 Henrik Boström</p>
+<p>License: BSD 3 clause</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Conformal regressors and predictive systems (crepes)
+
+Routines that implement conformal regressors and conformal predictive
+systems, which transform point predictions into prediction intervals
+and cumulative distributions, respectively.
+
+Author: Henrik Boström (bostromh@kth.se)
+
+Copyright 2021 Henrik Boström
+
+License: BSD 3 clause
+&#34;&#34;&#34;
+
+# To do:
+#
+# - error messages
+# - commenting and documentation 
+# - test for uniformity of p-values (in evaluate)
+
+import numpy as np
+import pandas as pd
+import time
+
+__version__ = &#34;0.0.1&#34;
+
+class ConformalPredictor():
+
+    
+    def __init__(self):
+        self.alphas = None
+        self.fitted = False
+        self.normalized = None
+        self.mondrian = None
+        self.time_fit = None
+        self.time_predict = None
+        self.time_evaluate = None
+
+        
+class ConformalRegressor(ConformalPredictor):
+    &#34;&#34;&#34;
+    Conformal Regressor.
+
+    A conformal regressor transforms point predictions (regression values) into
+    prediction intervals, for a certain confidence level.
+    
+    &#34;&#34;&#34;
+    
+    def __repr__(self):
+        if self.fitted:
+            return &#34;ConformalRegressor(fitted={}, normalized={}, mondrian={})&#34;.format(self.fitted, self.normalized, self.mondrian)
+        else:
+            return &#34;ConformalRegressor(fitted={})&#34;.format(self.fitted)
+    
+    def fit(self, residuals=None, sigmas=None, bins=None):
+        &#34;&#34;&#34;
+        Fit conformal regressor.
+
+        Parameters
+        ----------
+        residuals : array-like of shape (n_values,)
+            Residuals; actual - predicted
+        sigmas: array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+
+        Returns
+        -------
+        self : object
+            Fitted ConformalRegressor.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        abs_residuals = np.abs(residuals)
+        if bins is None:
+            self.mondrian = False
+            if sigmas is None:
+                self.normalized = False
+                self.alphas = np.sort(abs_residuals)[::-1]
+            else:
+                self.normalized = True
+                self.alphas = np.sort(abs_residuals/sigmas)[::-1]
+        else: 
+            self.mondrian = True
+            bin_values = np.unique(bins)
+            if sigmas is None:            
+                self.normalized = False
+                self.alphas = (bin_values,[np.sort(abs_residuals[bins==b])[::-1] for b in bin_values])
+            else:
+                self.normalized = True
+                self.alphas = (bin_values, [np.sort(abs_residuals[bins==b]/sigmas[bins==b])[::-1] for b in bin_values])                
+        self.fitted = True
+        toc = time.time()
+        self.time_fit = toc-tic
+        return self
+
+    def predict(self, y_hat=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf):
+        &#34;&#34;&#34;
+        Predict using the conformal regressor.
+
+        Parameters
+        ----------
+        y_hat : array-like of shape (n_values,)
+            predicted (regression) values
+        sigmas : array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+        confidence : float in range (0,1), default = 0.95
+            The confidence level.
+        y_min : float or int, default = -np.inf
+            The minimum value to include in prediction intervals.
+        y_max : float or int, default = np.inf
+            The maximum value to include in prediction intervals.
+
+        Returns
+        -------
+        intervals : ndarray of shape (n_values, 2)
+            Prediction intervals.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        intervals = np.zeros((len(y_hat),2))
+        if not self.mondrian:
+            alpha_index = int((1-confidence)*(len(self.alphas)+1))-1
+            if alpha_index &gt;= 0:
+                alpha = self.alphas[alpha_index]
+                if self.normalized:
+                    intervals[:,0] = y_hat-alpha*sigmas
+                    intervals[:,1] = y_hat+alpha*sigmas
+                else:
+                    intervals[:,0] = y_hat-alpha
+                    intervals[:,1] = y_hat+alpha
+            else:
+                intervals[:,0] = -np.inf # If the no. of calibration instances is too small for the chosen confidence level, 
+                intervals[:,1] = np.inf  # then the intervals will be of maximum size
+        else:           
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+            alpha_indexes = [int((1-confidence)*(len(bin_alphas[b])+1))-1 for b in range(len(bin_values))]
+            bin_alpha = [bin_alphas[b][alpha_indexes[b]] if alpha_indexes[b]&gt;=0 else np.inf for b in range(len(bin_values))]
+            if self.normalized:
+                for b in range(len(bin_values)):
+                    intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]*sigmas[bin_indexes[b]]
+                    intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]*sigmas[bin_indexes[b]]
+            else:
+                for b in range(len(bin_values)):
+                    intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]
+                    intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]                
+        if y_min &gt; -np.inf:
+            intervals[intervals&lt;y_min] = y_min
+        if y_max &lt; np.inf:
+            intervals[intervals&gt;y_max] = y_max 
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return intervals
+
+    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+        &#34;&#34;&#34;
+        Evaluate the conformal regressor.
+
+        Parameters
+        ----------
+        y_hat : array-like of shape (n_values,)
+            predicted (regression) values
+        sigmas : array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+        confidence : float in range (0,1), default = 0.95
+            The confidence level.
+        y_min : float or int, default = -np.inf
+            The minimum value to include in prediction intervals.
+        y_max : float or int, default = np.inf
+            The maximum value to include in prediction intervals.
+        metrics : a string or a list of strings, default = list of all metrics
+            Evaluation metrics: &#34;error&#34;,&#34;efficiency&#34;, &#34;time_fit&#34;,&#34;time_evaluate&#34;
+        
+        Returns
+        -------
+        results : dictionary with a key for each selected metric 
+            Estimated performance using the metrics.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        if metrics is None:
+            metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+        test_results = {}
+        intervals = self.predict(y_hat, sigmas, bins, confidence, y_min, y_max)
+        if &#34;error&#34; in metrics:
+            test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+        if &#34;efficiency&#34; in metrics:            
+            test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+        if &#34;time_fit&#34; in metrics:
+            test_results[&#34;time_fit&#34;] = self.time_fit
+        toc = time.time()
+        self.time_evaluate = toc-tic
+        if &#34;time_evaluate&#34; in metrics:
+            test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+        return test_results
+    
+class ConformalPredictiveSystem(ConformalPredictor):
+    &#34;&#34;&#34;
+    Conformal Predictive System.
+
+    A conformal predictive system transforms point predictions (regression values) into
+    cumulative distributions (conformal predictive distributions).
+    
+    &#34;&#34;&#34;
+    
+
+    def __repr__(self):
+        if self.fitted:
+            return &#34;ConformalPredictiveSystem(fitted={}, normalized={}, mondrian={})&#34;.format(self.fitted, self.normalized, self.mondrian)
+        else:
+            return &#34;ConformalPredictiveSystem(fitted={})&#34;.format(self.fitted)
+
+    def fit(self, residuals=None, sigmas=None, bins=None):
+        &#34;&#34;&#34;
+        Fit conformal predictive system.
+
+        Parameters
+        ----------
+        residuals : array-like of shape (n_values,)
+            Residuals; actual - predicted
+        sigmas: array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+
+        Returns
+        -------
+        self : object
+            Fitted ConformalPredictiveSystem.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        if bins is None:
+            self.mondrian = False
+            if sigmas is None:
+                self.normalized = False
+                self.alphas = np.sort(residuals)
+            else:
+                self.normalized = True
+                self.alphas = np.sort(residuals/sigmas)
+        else: 
+            self.mondrian = True
+            bin_values = np.unique(bins)
+            if sigmas is None:            
+                self.normalized = False
+                self.alphas = (bin_values,[np.sort(residuals[bins==b]) for b in bin_values])
+            else:
+                self.normalized = True
+                self.alphas = (bin_values, [np.sort(residuals[bins==b]/sigmas[bins==b]) for b in bin_values])                
+        self.fitted = True
+        toc = time.time()
+        self.time_fit = toc-tic
+        return self
+        
+    def predict(self, y_hat=None, sigmas=None, bins=None,
+                y=[], lower_percentiles=[], higher_percentiles=[], y_min=-np.inf,
+                y_max=np.inf, return_cpds=False):    
+        tic = time.time()
+        if not self.mondrian:
+                if self.normalized:
+                    cpds = np.array([y_hat[i]+sigmas[i]*self.alphas for i in range(len(y_hat))])
+                else:
+                    cpds = np.array([y_hat[i]+self.alphas for i in range(len(y_hat))])
+        else:           
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+            if self.normalized:
+                cpds = [np.array([y_hat[i]+sigmas[i]*bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+            else:
+                cpds = [np.array([y_hat[i]+bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+        no_prec_result_cols = 0
+        if type(lower_percentiles) == int or type(lower_percentiles) == float:
+            lower_percentiles = [lower_percentiles]
+        if type(higher_percentiles) == int or type(higher_percentiles) == float:
+            higher_percentiles = [higher_percentiles]
+        no_result_columns = (y != [])+len(lower_percentiles)+len(higher_percentiles)
+        if no_result_columns &gt; 0:
+            result = np.zeros((len(y_hat),no_result_columns))
+        if len(y) &gt; 0:
+            no_prec_result_cols += 1
+            gammas = np.random.rand(len(y_hat))
+            if type(y) == int or type(y) == float:
+                if not self.mondrian:
+                    result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+                else:
+                    for b in range(len(bin_values)):
+                        result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y))+gammas[bin_indexes[b]][i])/(len(cpds[b])+1)
+                                                             for i in range(len(cpds[b]))])
+            elif (type(y) == list or type(y) == np.ndarray) and len(y) == len(y_hat):
+                if not self.mondrian:
+                    result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y[i]))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+                else:
+                    for b in range(len(bin_values)):
+                        result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y[bin_indexes[b]][i]))+gammas[bin_indexes[b]][i])/(len(cpds[b][0])+1)
+                                                             for i in range(len(cpds[b]))])
+            else:
+                raise ValueError(&#34;y must either be a single int or float or a list/numpy array of the same length as the number of point predictions&#34;)
+        if len(lower_percentiles) &gt; 0:
+                if not self.mondrian:
+                    lower_indexes = [int(lower_percentile/100*(len(self.alphas)+1))-1 for lower_percentile in lower_percentiles]                
+                    result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)] = cpds[:,lower_indexes]
+                    y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                    result[:,y_min_columns] = y_min
+                else:
+                    for b in range(len(bin_values)):
+                        lower_indexes = [int(lower_percentile/100*(len(bin_alphas[b])+1))-1 for lower_percentile in lower_percentiles]                
+                        result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(lower_indexes)] = cpds[b][:,lower_indexes]
+                    y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                    result[:,y_min_columns] = y_min                    
+        if y_min &gt; -np.inf:
+            result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)]&lt;y_min] = y_min
+        no_prec_result_cols += len(lower_percentiles)
+        if len(higher_percentiles) &gt; 0:
+                if not self.mondrian:
+                    higher_indexes = np.array([int(np.ceil(higher_percentile/100*(len(self.alphas)+1)))-1 for higher_percentile in higher_percentiles], dtype=int)
+                    too_high_indexes = np.array([i for i in range(len(higher_indexes)) if higher_indexes[i] &gt; len(self.alphas)-1], dtype=int)
+                    higher_indexes[too_high_indexes] = len(self.alphas)-1
+                    result[:,no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[:,higher_indexes]
+                    result[:,no_prec_result_cols+too_high_indexes] = y_max
+                else:
+                    for b in range(len(bin_values)):
+                        higher_indexes = [int(np.ceil(higher_percentile/100*(len(bin_alphas[b])+1)))-1 for higher_percentile in higher_percentiles]
+                        result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[b][:,higher_indexes]
+        if y_max &lt; np.inf:
+            result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)]&gt;y_max] = y_max
+        toc = time.time()
+        self.time_predict = toc-tic            
+        if no_result_columns &gt; 0 and return_cpds:
+            return result, cpds
+        elif no_result_columns &gt; 0:
+            return result
+        elif return_cpds:
+            return cpds
+
+    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+        tic = time.time()
+        if metrics is None:
+            metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;CRPS&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+        lower_percentile = (1-confidence)/2*100
+        higher_percentile = (confidence+(1-confidence)/2)*100
+        test_results = {}
+        if &#34;CRPS&#34; in metrics:
+            results, cpds = self.predict(y_hat, sigmas=sigmas, bins=bins, y=y, lower_percentiles=lower_percentile,
+                                         higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_cpds=True)
+            intervals = results[:,[1,2]]
+            if not self.mondrian:
+                if self.normalized:
+                    crps = calculate_crps(cpds, self.alphas, y_hat, sigmas, y)
+                else:
+                    crps = calculate_crps(cpds, self.alphas, y_hat, np.ones(len(y_hat)), y)
+            else:
+                bin_values, bin_alphas = self.alphas
+                bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]                
+                if self.normalized:
+                    crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], sigmas[bin_indexes[b]], y[bin_indexes[b]])*len(bin_indexes[b])
+                                   for b in range(len(bin_values))])/len(y)
+                else:
+                    crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], np.ones(len(bin_indexes[b])), y[bin_indexes[b]])*len(bin_indexes[b])
+                                   for b in range(len(bin_values))])/len(y)
+            
+        else:
+            intervals = self.predict(y_hat, sigmas=sigmas, bins=bins, lower_percentiles=lower_percentile,
+                                     higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_CRPS=False)
+        if &#34;error&#34; in metrics:
+            test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+        if &#34;efficiency&#34; in metrics:            
+            test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+        if &#34;CRPS&#34; in metrics:            
+            test_results[&#34;CRPS&#34;] = crps
+        if &#34;time_fit&#34; in metrics:
+            test_results[&#34;time_fit&#34;] = self.time_fit
+        toc = time.time()
+        self.time_evaluate = toc-tic
+        if &#34;time_evaluate&#34; in metrics:
+            test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+        return test_results
+        
+def calculate_crps(cpds, alphas, predictions, sigmas, y):
+    widths = np.array([alphas[i+1]-alphas[i] for i in range(len(alphas)-1)])
+    cum_probs = np.cumsum([1/len(alphas) for i in range(len(alphas)-1)])
+    lower_errors = cum_probs**2
+    upper_errors = (1-cum_probs)**2
+    cpd_indexes = [np.argwhere(cpds[i]&lt;y[i]) for i in range(len(y))]
+    cpd_indexes = [-1 if len(c)==0 else c[-1][0] for c in cpd_indexes]
+    return np.mean([get_crps(cpd_indexes[i], lower_errors, upper_errors, widths, sigmas[i], cpds[i], y[i]) for i in range(len(y))])
+        
+def get_crps(cpd_index, lower_errors, upper_errors, widths, sigma, cpd, y):
+    if cpd_index == -1:
+        score = np.sum(upper_errors*widths*sigma)+(cpd[0]-y) 
+    elif cpd_index == len(cpd)-1:
+        score = np.sum(lower_errors*widths*sigma)+(y-cpd[-1]) 
+    else:
+        score = np.sum(lower_errors[:cpd_index]*widths[:cpd_index]*sigma) +\
+            np.sum(upper_errors[cpd_index+1:]*widths[cpd_index+1:]*sigma) +\
+            lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma +\
+            upper_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
+    return score</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="base.calculate_crps"><code class="name flex">
+<span>def <span class="ident">calculate_crps</span></span>(<span>cpds, alphas, predictions, sigmas, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_crps(cpds, alphas, predictions, sigmas, y):
+    widths = np.array([alphas[i+1]-alphas[i] for i in range(len(alphas)-1)])
+    cum_probs = np.cumsum([1/len(alphas) for i in range(len(alphas)-1)])
+    lower_errors = cum_probs**2
+    upper_errors = (1-cum_probs)**2
+    cpd_indexes = [np.argwhere(cpds[i]&lt;y[i]) for i in range(len(y))]
+    cpd_indexes = [-1 if len(c)==0 else c[-1][0] for c in cpd_indexes]
+    return np.mean([get_crps(cpd_indexes[i], lower_errors, upper_errors, widths, sigmas[i], cpds[i], y[i]) for i in range(len(y))])</code></pre>
+</details>
+</dd>
+<dt id="base.get_crps"><code class="name flex">
+<span>def <span class="ident">get_crps</span></span>(<span>cpd_index, lower_errors, upper_errors, widths, sigma, cpd, y)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_crps(cpd_index, lower_errors, upper_errors, widths, sigma, cpd, y):
+    if cpd_index == -1:
+        score = np.sum(upper_errors*widths*sigma)+(cpd[0]-y) 
+    elif cpd_index == len(cpd)-1:
+        score = np.sum(lower_errors*widths*sigma)+(y-cpd[-1]) 
+    else:
+        score = np.sum(lower_errors[:cpd_index]*widths[:cpd_index]*sigma) +\
+            np.sum(upper_errors[cpd_index+1:]*widths[cpd_index+1:]*sigma) +\
+            lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma +\
+            upper_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
+    return score</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="base.ConformalPredictiveSystem"><code class="flex name class">
+<span>class <span class="ident">ConformalPredictiveSystem</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Conformal Predictive System.</p>
+<p>A conformal predictive system transforms point predictions (regression values) into
+cumulative distributions (conformal predictive distributions).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ConformalPredictiveSystem(ConformalPredictor):
+    &#34;&#34;&#34;
+    Conformal Predictive System.
+
+    A conformal predictive system transforms point predictions (regression values) into
+    cumulative distributions (conformal predictive distributions).
+    
+    &#34;&#34;&#34;
+    
+
+    def __repr__(self):
+        if self.fitted:
+            return &#34;ConformalPredictiveSystem(fitted={}, normalized={}, mondrian={})&#34;.format(self.fitted, self.normalized, self.mondrian)
+        else:
+            return &#34;ConformalPredictiveSystem(fitted={})&#34;.format(self.fitted)
+
+    def fit(self, residuals=None, sigmas=None, bins=None):
+        &#34;&#34;&#34;
+        Fit conformal predictive system.
+
+        Parameters
+        ----------
+        residuals : array-like of shape (n_values,)
+            Residuals; actual - predicted
+        sigmas: array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+
+        Returns
+        -------
+        self : object
+            Fitted ConformalPredictiveSystem.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        if bins is None:
+            self.mondrian = False
+            if sigmas is None:
+                self.normalized = False
+                self.alphas = np.sort(residuals)
+            else:
+                self.normalized = True
+                self.alphas = np.sort(residuals/sigmas)
+        else: 
+            self.mondrian = True
+            bin_values = np.unique(bins)
+            if sigmas is None:            
+                self.normalized = False
+                self.alphas = (bin_values,[np.sort(residuals[bins==b]) for b in bin_values])
+            else:
+                self.normalized = True
+                self.alphas = (bin_values, [np.sort(residuals[bins==b]/sigmas[bins==b]) for b in bin_values])                
+        self.fitted = True
+        toc = time.time()
+        self.time_fit = toc-tic
+        return self
+        
+    def predict(self, y_hat=None, sigmas=None, bins=None,
+                y=[], lower_percentiles=[], higher_percentiles=[], y_min=-np.inf,
+                y_max=np.inf, return_cpds=False):    
+        tic = time.time()
+        if not self.mondrian:
+                if self.normalized:
+                    cpds = np.array([y_hat[i]+sigmas[i]*self.alphas for i in range(len(y_hat))])
+                else:
+                    cpds = np.array([y_hat[i]+self.alphas for i in range(len(y_hat))])
+        else:           
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+            if self.normalized:
+                cpds = [np.array([y_hat[i]+sigmas[i]*bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+            else:
+                cpds = [np.array([y_hat[i]+bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+        no_prec_result_cols = 0
+        if type(lower_percentiles) == int or type(lower_percentiles) == float:
+            lower_percentiles = [lower_percentiles]
+        if type(higher_percentiles) == int or type(higher_percentiles) == float:
+            higher_percentiles = [higher_percentiles]
+        no_result_columns = (y != [])+len(lower_percentiles)+len(higher_percentiles)
+        if no_result_columns &gt; 0:
+            result = np.zeros((len(y_hat),no_result_columns))
+        if len(y) &gt; 0:
+            no_prec_result_cols += 1
+            gammas = np.random.rand(len(y_hat))
+            if type(y) == int or type(y) == float:
+                if not self.mondrian:
+                    result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+                else:
+                    for b in range(len(bin_values)):
+                        result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y))+gammas[bin_indexes[b]][i])/(len(cpds[b])+1)
+                                                             for i in range(len(cpds[b]))])
+            elif (type(y) == list or type(y) == np.ndarray) and len(y) == len(y_hat):
+                if not self.mondrian:
+                    result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y[i]))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+                else:
+                    for b in range(len(bin_values)):
+                        result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y[bin_indexes[b]][i]))+gammas[bin_indexes[b]][i])/(len(cpds[b][0])+1)
+                                                             for i in range(len(cpds[b]))])
+            else:
+                raise ValueError(&#34;y must either be a single int or float or a list/numpy array of the same length as the number of point predictions&#34;)
+        if len(lower_percentiles) &gt; 0:
+                if not self.mondrian:
+                    lower_indexes = [int(lower_percentile/100*(len(self.alphas)+1))-1 for lower_percentile in lower_percentiles]                
+                    result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)] = cpds[:,lower_indexes]
+                    y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                    result[:,y_min_columns] = y_min
+                else:
+                    for b in range(len(bin_values)):
+                        lower_indexes = [int(lower_percentile/100*(len(bin_alphas[b])+1))-1 for lower_percentile in lower_percentiles]                
+                        result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(lower_indexes)] = cpds[b][:,lower_indexes]
+                    y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                    result[:,y_min_columns] = y_min                    
+        if y_min &gt; -np.inf:
+            result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)]&lt;y_min] = y_min
+        no_prec_result_cols += len(lower_percentiles)
+        if len(higher_percentiles) &gt; 0:
+                if not self.mondrian:
+                    higher_indexes = np.array([int(np.ceil(higher_percentile/100*(len(self.alphas)+1)))-1 for higher_percentile in higher_percentiles], dtype=int)
+                    too_high_indexes = np.array([i for i in range(len(higher_indexes)) if higher_indexes[i] &gt; len(self.alphas)-1], dtype=int)
+                    higher_indexes[too_high_indexes] = len(self.alphas)-1
+                    result[:,no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[:,higher_indexes]
+                    result[:,no_prec_result_cols+too_high_indexes] = y_max
+                else:
+                    for b in range(len(bin_values)):
+                        higher_indexes = [int(np.ceil(higher_percentile/100*(len(bin_alphas[b])+1)))-1 for higher_percentile in higher_percentiles]
+                        result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[b][:,higher_indexes]
+        if y_max &lt; np.inf:
+            result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)]&gt;y_max] = y_max
+        toc = time.time()
+        self.time_predict = toc-tic            
+        if no_result_columns &gt; 0 and return_cpds:
+            return result, cpds
+        elif no_result_columns &gt; 0:
+            return result
+        elif return_cpds:
+            return cpds
+
+    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+        tic = time.time()
+        if metrics is None:
+            metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;CRPS&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+        lower_percentile = (1-confidence)/2*100
+        higher_percentile = (confidence+(1-confidence)/2)*100
+        test_results = {}
+        if &#34;CRPS&#34; in metrics:
+            results, cpds = self.predict(y_hat, sigmas=sigmas, bins=bins, y=y, lower_percentiles=lower_percentile,
+                                         higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_cpds=True)
+            intervals = results[:,[1,2]]
+            if not self.mondrian:
+                if self.normalized:
+                    crps = calculate_crps(cpds, self.alphas, y_hat, sigmas, y)
+                else:
+                    crps = calculate_crps(cpds, self.alphas, y_hat, np.ones(len(y_hat)), y)
+            else:
+                bin_values, bin_alphas = self.alphas
+                bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]                
+                if self.normalized:
+                    crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], sigmas[bin_indexes[b]], y[bin_indexes[b]])*len(bin_indexes[b])
+                                   for b in range(len(bin_values))])/len(y)
+                else:
+                    crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], np.ones(len(bin_indexes[b])), y[bin_indexes[b]])*len(bin_indexes[b])
+                                   for b in range(len(bin_values))])/len(y)
+            
+        else:
+            intervals = self.predict(y_hat, sigmas=sigmas, bins=bins, lower_percentiles=lower_percentile,
+                                     higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_CRPS=False)
+        if &#34;error&#34; in metrics:
+            test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+        if &#34;efficiency&#34; in metrics:            
+            test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+        if &#34;CRPS&#34; in metrics:            
+            test_results[&#34;CRPS&#34;] = crps
+        if &#34;time_fit&#34; in metrics:
+            test_results[&#34;time_fit&#34;] = self.time_fit
+        toc = time.time()
+        self.time_evaluate = toc-tic
+        if &#34;time_evaluate&#34; in metrics:
+            test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+        return test_results</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="base.ConformalPredictor" href="#base.ConformalPredictor">ConformalPredictor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="base.ConformalPredictiveSystem.evaluate"><code class="name flex">
+<span>def <span class="ident">evaluate</span></span>(<span>self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-inf, y_max=inf, metrics=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+    tic = time.time()
+    if metrics is None:
+        metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;CRPS&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+    lower_percentile = (1-confidence)/2*100
+    higher_percentile = (confidence+(1-confidence)/2)*100
+    test_results = {}
+    if &#34;CRPS&#34; in metrics:
+        results, cpds = self.predict(y_hat, sigmas=sigmas, bins=bins, y=y, lower_percentiles=lower_percentile,
+                                     higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_cpds=True)
+        intervals = results[:,[1,2]]
+        if not self.mondrian:
+            if self.normalized:
+                crps = calculate_crps(cpds, self.alphas, y_hat, sigmas, y)
+            else:
+                crps = calculate_crps(cpds, self.alphas, y_hat, np.ones(len(y_hat)), y)
+        else:
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]                
+            if self.normalized:
+                crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], sigmas[bin_indexes[b]], y[bin_indexes[b]])*len(bin_indexes[b])
+                               for b in range(len(bin_values))])/len(y)
+            else:
+                crps = np.sum([calculate_crps(cpds[b], bin_alphas[b], y_hat[bin_indexes[b]], np.ones(len(bin_indexes[b])), y[bin_indexes[b]])*len(bin_indexes[b])
+                               for b in range(len(bin_values))])/len(y)
+        
+    else:
+        intervals = self.predict(y_hat, sigmas=sigmas, bins=bins, lower_percentiles=lower_percentile,
+                                 higher_percentiles=higher_percentile, y_min=y_min, y_max=y_max, return_CRPS=False)
+    if &#34;error&#34; in metrics:
+        test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+    if &#34;efficiency&#34; in metrics:            
+        test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+    if &#34;CRPS&#34; in metrics:            
+        test_results[&#34;CRPS&#34;] = crps
+    if &#34;time_fit&#34; in metrics:
+        test_results[&#34;time_fit&#34;] = self.time_fit
+    toc = time.time()
+    self.time_evaluate = toc-tic
+    if &#34;time_evaluate&#34; in metrics:
+        test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+    return test_results</code></pre>
+</details>
+</dd>
+<dt id="base.ConformalPredictiveSystem.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, residuals=None, sigmas=None, bins=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fit conformal predictive system.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>residuals</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Residuals; actual - predicted</dd>
+<dt><strong><code>sigmas</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Sigmas; difficulty estimates</dd>
+<dt><strong><code>bins</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Bins; Mondrian categories</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>self</code></strong> :&ensp;<code>object</code></dt>
+<dd>Fitted ConformalPredictiveSystem.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit(self, residuals=None, sigmas=None, bins=None):
+    &#34;&#34;&#34;
+    Fit conformal predictive system.
+
+    Parameters
+    ----------
+    residuals : array-like of shape (n_values,)
+        Residuals; actual - predicted
+    sigmas: array-like of shape (n_values,)
+        Sigmas; difficulty estimates
+    bins : array-like of shape (n_values,)
+        Bins; Mondrian categories
+
+    Returns
+    -------
+    self : object
+        Fitted ConformalPredictiveSystem.
+    &#34;&#34;&#34;
+
+    tic = time.time()
+    if bins is None:
+        self.mondrian = False
+        if sigmas is None:
+            self.normalized = False
+            self.alphas = np.sort(residuals)
+        else:
+            self.normalized = True
+            self.alphas = np.sort(residuals/sigmas)
+    else: 
+        self.mondrian = True
+        bin_values = np.unique(bins)
+        if sigmas is None:            
+            self.normalized = False
+            self.alphas = (bin_values,[np.sort(residuals[bins==b]) for b in bin_values])
+        else:
+            self.normalized = True
+            self.alphas = (bin_values, [np.sort(residuals[bins==b]/sigmas[bins==b]) for b in bin_values])                
+    self.fitted = True
+    toc = time.time()
+    self.time_fit = toc-tic
+    return self</code></pre>
+</details>
+</dd>
+<dt id="base.ConformalPredictiveSystem.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self, y_hat=None, sigmas=None, bins=None, y=[], lower_percentiles=[], higher_percentiles=[], y_min=-inf, y_max=inf, return_cpds=False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict(self, y_hat=None, sigmas=None, bins=None,
+            y=[], lower_percentiles=[], higher_percentiles=[], y_min=-np.inf,
+            y_max=np.inf, return_cpds=False):    
+    tic = time.time()
+    if not self.mondrian:
+            if self.normalized:
+                cpds = np.array([y_hat[i]+sigmas[i]*self.alphas for i in range(len(y_hat))])
+            else:
+                cpds = np.array([y_hat[i]+self.alphas for i in range(len(y_hat))])
+    else:           
+        bin_values, bin_alphas = self.alphas
+        bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+        if self.normalized:
+            cpds = [np.array([y_hat[i]+sigmas[i]*bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+        else:
+            cpds = [np.array([y_hat[i]+bin_alphas[b] for i in bin_indexes[b]]) for b in range(len(bin_values))]
+    no_prec_result_cols = 0
+    if type(lower_percentiles) == int or type(lower_percentiles) == float:
+        lower_percentiles = [lower_percentiles]
+    if type(higher_percentiles) == int or type(higher_percentiles) == float:
+        higher_percentiles = [higher_percentiles]
+    no_result_columns = (y != [])+len(lower_percentiles)+len(higher_percentiles)
+    if no_result_columns &gt; 0:
+        result = np.zeros((len(y_hat),no_result_columns))
+    if len(y) &gt; 0:
+        no_prec_result_cols += 1
+        gammas = np.random.rand(len(y_hat))
+        if type(y) == int or type(y) == float:
+            if not self.mondrian:
+                result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+            else:
+                for b in range(len(bin_values)):
+                    result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y))+gammas[bin_indexes[b]][i])/(len(cpds[b])+1)
+                                                         for i in range(len(cpds[b]))])
+        elif (type(y) == list or type(y) == np.ndarray) and len(y) == len(y_hat):
+            if not self.mondrian:
+                result[:,0] = np.array([(len(np.argwhere(cpds[i]&lt;y[i]))+gammas[i])/(len(cpds[i])+1) for i in range(len(cpds))])
+            else:
+                for b in range(len(bin_values)):
+                    result[bin_indexes[b],0] = np.array([(len(np.argwhere(cpds[b][i]&lt;y[bin_indexes[b]][i]))+gammas[bin_indexes[b]][i])/(len(cpds[b][0])+1)
+                                                         for i in range(len(cpds[b]))])
+        else:
+            raise ValueError(&#34;y must either be a single int or float or a list/numpy array of the same length as the number of point predictions&#34;)
+    if len(lower_percentiles) &gt; 0:
+            if not self.mondrian:
+                lower_indexes = [int(lower_percentile/100*(len(self.alphas)+1))-1 for lower_percentile in lower_percentiles]                
+                result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)] = cpds[:,lower_indexes]
+                y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                result[:,y_min_columns] = y_min
+            else:
+                for b in range(len(bin_values)):
+                    lower_indexes = [int(lower_percentile/100*(len(bin_alphas[b])+1))-1 for lower_percentile in lower_percentiles]                
+                    result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(lower_indexes)] = cpds[b][:,lower_indexes]
+                y_min_columns = [no_prec_result_cols+i for i in range(len(lower_indexes)) if lower_indexes[i]&lt;0]
+                result[:,y_min_columns] = y_min                    
+    if y_min &gt; -np.inf:
+        result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(lower_percentiles)]&lt;y_min] = y_min
+    no_prec_result_cols += len(lower_percentiles)
+    if len(higher_percentiles) &gt; 0:
+            if not self.mondrian:
+                higher_indexes = np.array([int(np.ceil(higher_percentile/100*(len(self.alphas)+1)))-1 for higher_percentile in higher_percentiles], dtype=int)
+                too_high_indexes = np.array([i for i in range(len(higher_indexes)) if higher_indexes[i] &gt; len(self.alphas)-1], dtype=int)
+                higher_indexes[too_high_indexes] = len(self.alphas)-1
+                result[:,no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[:,higher_indexes]
+                result[:,no_prec_result_cols+too_high_indexes] = y_max
+            else:
+                for b in range(len(bin_values)):
+                    higher_indexes = [int(np.ceil(higher_percentile/100*(len(bin_alphas[b])+1)))-1 for higher_percentile in higher_percentiles]
+                    result[bin_indexes[b],no_prec_result_cols:no_prec_result_cols+len(higher_indexes)] = cpds[b][:,higher_indexes]
+    if y_max &lt; np.inf:
+        result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)][result[:,no_prec_result_cols:no_prec_result_cols+len(higher_percentiles)]&gt;y_max] = y_max
+    toc = time.time()
+    self.time_predict = toc-tic            
+    if no_result_columns &gt; 0 and return_cpds:
+        return result, cpds
+    elif no_result_columns &gt; 0:
+        return result
+    elif return_cpds:
+        return cpds</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="base.ConformalPredictor"><code class="flex name class">
+<span>class <span class="ident">ConformalPredictor</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ConformalPredictor():
+
+    
+    def __init__(self):
+        self.alphas = None
+        self.fitted = False
+        self.normalized = None
+        self.mondrian = None
+        self.time_fit = None
+        self.time_predict = None
+        self.time_evaluate = None</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="base.ConformalPredictiveSystem" href="#base.ConformalPredictiveSystem">ConformalPredictiveSystem</a></li>
+<li><a title="base.ConformalRegressor" href="#base.ConformalRegressor">ConformalRegressor</a></li>
+</ul>
+</dd>
+<dt id="base.ConformalRegressor"><code class="flex name class">
+<span>class <span class="ident">ConformalRegressor</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Conformal Regressor.</p>
+<p>A conformal regressor transforms point predictions (regression values) into
+prediction intervals, for a certain confidence level.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ConformalRegressor(ConformalPredictor):
+    &#34;&#34;&#34;
+    Conformal Regressor.
+
+    A conformal regressor transforms point predictions (regression values) into
+    prediction intervals, for a certain confidence level.
+    
+    &#34;&#34;&#34;
+    
+    def __repr__(self):
+        if self.fitted:
+            return &#34;ConformalRegressor(fitted={}, normalized={}, mondrian={})&#34;.format(self.fitted, self.normalized, self.mondrian)
+        else:
+            return &#34;ConformalRegressor(fitted={})&#34;.format(self.fitted)
+    
+    def fit(self, residuals=None, sigmas=None, bins=None):
+        &#34;&#34;&#34;
+        Fit conformal regressor.
+
+        Parameters
+        ----------
+        residuals : array-like of shape (n_values,)
+            Residuals; actual - predicted
+        sigmas: array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+
+        Returns
+        -------
+        self : object
+            Fitted ConformalRegressor.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        abs_residuals = np.abs(residuals)
+        if bins is None:
+            self.mondrian = False
+            if sigmas is None:
+                self.normalized = False
+                self.alphas = np.sort(abs_residuals)[::-1]
+            else:
+                self.normalized = True
+                self.alphas = np.sort(abs_residuals/sigmas)[::-1]
+        else: 
+            self.mondrian = True
+            bin_values = np.unique(bins)
+            if sigmas is None:            
+                self.normalized = False
+                self.alphas = (bin_values,[np.sort(abs_residuals[bins==b])[::-1] for b in bin_values])
+            else:
+                self.normalized = True
+                self.alphas = (bin_values, [np.sort(abs_residuals[bins==b]/sigmas[bins==b])[::-1] for b in bin_values])                
+        self.fitted = True
+        toc = time.time()
+        self.time_fit = toc-tic
+        return self
+
+    def predict(self, y_hat=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf):
+        &#34;&#34;&#34;
+        Predict using the conformal regressor.
+
+        Parameters
+        ----------
+        y_hat : array-like of shape (n_values,)
+            predicted (regression) values
+        sigmas : array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+        confidence : float in range (0,1), default = 0.95
+            The confidence level.
+        y_min : float or int, default = -np.inf
+            The minimum value to include in prediction intervals.
+        y_max : float or int, default = np.inf
+            The maximum value to include in prediction intervals.
+
+        Returns
+        -------
+        intervals : ndarray of shape (n_values, 2)
+            Prediction intervals.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        intervals = np.zeros((len(y_hat),2))
+        if not self.mondrian:
+            alpha_index = int((1-confidence)*(len(self.alphas)+1))-1
+            if alpha_index &gt;= 0:
+                alpha = self.alphas[alpha_index]
+                if self.normalized:
+                    intervals[:,0] = y_hat-alpha*sigmas
+                    intervals[:,1] = y_hat+alpha*sigmas
+                else:
+                    intervals[:,0] = y_hat-alpha
+                    intervals[:,1] = y_hat+alpha
+            else:
+                intervals[:,0] = -np.inf # If the no. of calibration instances is too small for the chosen confidence level, 
+                intervals[:,1] = np.inf  # then the intervals will be of maximum size
+        else:           
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+            alpha_indexes = [int((1-confidence)*(len(bin_alphas[b])+1))-1 for b in range(len(bin_values))]
+            bin_alpha = [bin_alphas[b][alpha_indexes[b]] if alpha_indexes[b]&gt;=0 else np.inf for b in range(len(bin_values))]
+            if self.normalized:
+                for b in range(len(bin_values)):
+                    intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]*sigmas[bin_indexes[b]]
+                    intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]*sigmas[bin_indexes[b]]
+            else:
+                for b in range(len(bin_values)):
+                    intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]
+                    intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]                
+        if y_min &gt; -np.inf:
+            intervals[intervals&lt;y_min] = y_min
+        if y_max &lt; np.inf:
+            intervals[intervals&gt;y_max] = y_max 
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return intervals
+
+    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+        &#34;&#34;&#34;
+        Evaluate the conformal regressor.
+
+        Parameters
+        ----------
+        y_hat : array-like of shape (n_values,)
+            predicted (regression) values
+        sigmas : array-like of shape (n_values,)
+            Sigmas; difficulty estimates
+        bins : array-like of shape (n_values,)
+            Bins; Mondrian categories
+        confidence : float in range (0,1), default = 0.95
+            The confidence level.
+        y_min : float or int, default = -np.inf
+            The minimum value to include in prediction intervals.
+        y_max : float or int, default = np.inf
+            The maximum value to include in prediction intervals.
+        metrics : a string or a list of strings, default = list of all metrics
+            Evaluation metrics: &#34;error&#34;,&#34;efficiency&#34;, &#34;time_fit&#34;,&#34;time_evaluate&#34;
+        
+        Returns
+        -------
+        results : dictionary with a key for each selected metric 
+            Estimated performance using the metrics.
+        &#34;&#34;&#34;
+
+        tic = time.time()
+        if metrics is None:
+            metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+        test_results = {}
+        intervals = self.predict(y_hat, sigmas, bins, confidence, y_min, y_max)
+        if &#34;error&#34; in metrics:
+            test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+        if &#34;efficiency&#34; in metrics:            
+            test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+        if &#34;time_fit&#34; in metrics:
+            test_results[&#34;time_fit&#34;] = self.time_fit
+        toc = time.time()
+        self.time_evaluate = toc-tic
+        if &#34;time_evaluate&#34; in metrics:
+            test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+        return test_results</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="base.ConformalPredictor" href="#base.ConformalPredictor">ConformalPredictor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="base.ConformalRegressor.evaluate"><code class="name flex">
+<span>def <span class="ident">evaluate</span></span>(<span>self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-inf, y_max=inf, metrics=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Evaluate the conformal regressor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>y_hat</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>predicted (regression) values</dd>
+<dt><strong><code>sigmas</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Sigmas; difficulty estimates</dd>
+<dt><strong><code>bins</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Bins; Mondrian categories</dd>
+<dt><strong><code>confidence</code></strong> :&ensp;<code>float in range (0,1)</code>, default <code>= 0.95</code></dt>
+<dd>The confidence level.</dd>
+<dt><strong><code>y_min</code></strong> :&ensp;<code>float</code> or <code>int</code>, default <code>= -np.inf</code></dt>
+<dd>The minimum value to include in prediction intervals.</dd>
+<dt><strong><code>y_max</code></strong> :&ensp;<code>float</code> or <code>int</code>, default <code>= np.inf</code></dt>
+<dd>The maximum value to include in prediction intervals.</dd>
+<dt><strong><code>metrics</code></strong> :&ensp;<code>a string</code> or <code>a list</code> of <code>strings</code>, default <code>= list</code> of <code>all metrics</code></dt>
+<dd>Evaluation metrics: "error","efficiency", "time_fit","time_evaluate"</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>results</code></strong> :&ensp;<code>dictionary with a key for each selected metric </code></dt>
+<dd>Estimated performance using the metrics.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
+    &#34;&#34;&#34;
+    Evaluate the conformal regressor.
+
+    Parameters
+    ----------
+    y_hat : array-like of shape (n_values,)
+        predicted (regression) values
+    sigmas : array-like of shape (n_values,)
+        Sigmas; difficulty estimates
+    bins : array-like of shape (n_values,)
+        Bins; Mondrian categories
+    confidence : float in range (0,1), default = 0.95
+        The confidence level.
+    y_min : float or int, default = -np.inf
+        The minimum value to include in prediction intervals.
+    y_max : float or int, default = np.inf
+        The maximum value to include in prediction intervals.
+    metrics : a string or a list of strings, default = list of all metrics
+        Evaluation metrics: &#34;error&#34;,&#34;efficiency&#34;, &#34;time_fit&#34;,&#34;time_evaluate&#34;
+    
+    Returns
+    -------
+    results : dictionary with a key for each selected metric 
+        Estimated performance using the metrics.
+    &#34;&#34;&#34;
+
+    tic = time.time()
+    if metrics is None:
+        metrics = [&#34;error&#34;,&#34;efficiency&#34;,&#34;time_fit&#34;,&#34;time_evaluate&#34;]
+    test_results = {}
+    intervals = self.predict(y_hat, sigmas, bins, confidence, y_min, y_max)
+    if &#34;error&#34; in metrics:
+        test_results[&#34;error&#34;] = 1-np.mean(np.logical_and(intervals[:,0]&lt;=y,y&lt;=intervals[:,1]))
+    if &#34;efficiency&#34; in metrics:            
+        test_results[&#34;efficiency&#34;] = np.mean(intervals[:,1]-intervals[:,0])
+    if &#34;time_fit&#34; in metrics:
+        test_results[&#34;time_fit&#34;] = self.time_fit
+    toc = time.time()
+    self.time_evaluate = toc-tic
+    if &#34;time_evaluate&#34; in metrics:
+        test_results[&#34;time_evaluate&#34;] = self.time_evaluate
+    return test_results</code></pre>
+</details>
+</dd>
+<dt id="base.ConformalRegressor.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, residuals=None, sigmas=None, bins=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fit conformal regressor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>residuals</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Residuals; actual - predicted</dd>
+<dt><strong><code>sigmas</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Sigmas; difficulty estimates</dd>
+<dt><strong><code>bins</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Bins; Mondrian categories</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>self</code></strong> :&ensp;<code>object</code></dt>
+<dd>Fitted ConformalRegressor.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit(self, residuals=None, sigmas=None, bins=None):
+    &#34;&#34;&#34;
+    Fit conformal regressor.
+
+    Parameters
+    ----------
+    residuals : array-like of shape (n_values,)
+        Residuals; actual - predicted
+    sigmas: array-like of shape (n_values,)
+        Sigmas; difficulty estimates
+    bins : array-like of shape (n_values,)
+        Bins; Mondrian categories
+
+    Returns
+    -------
+    self : object
+        Fitted ConformalRegressor.
+    &#34;&#34;&#34;
+
+    tic = time.time()
+    abs_residuals = np.abs(residuals)
+    if bins is None:
+        self.mondrian = False
+        if sigmas is None:
+            self.normalized = False
+            self.alphas = np.sort(abs_residuals)[::-1]
+        else:
+            self.normalized = True
+            self.alphas = np.sort(abs_residuals/sigmas)[::-1]
+    else: 
+        self.mondrian = True
+        bin_values = np.unique(bins)
+        if sigmas is None:            
+            self.normalized = False
+            self.alphas = (bin_values,[np.sort(abs_residuals[bins==b])[::-1] for b in bin_values])
+        else:
+            self.normalized = True
+            self.alphas = (bin_values, [np.sort(abs_residuals[bins==b]/sigmas[bins==b])[::-1] for b in bin_values])                
+    self.fitted = True
+    toc = time.time()
+    self.time_fit = toc-tic
+    return self</code></pre>
+</details>
+</dd>
+<dt id="base.ConformalRegressor.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self, y_hat=None, sigmas=None, bins=None, confidence=0.95, y_min=-inf, y_max=inf)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Predict using the conformal regressor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>y_hat</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>predicted (regression) values</dd>
+<dt><strong><code>sigmas</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Sigmas; difficulty estimates</dd>
+<dt><strong><code>bins</code></strong> :&ensp;<code>array-like</code> of <code>shape (n_values,)</code></dt>
+<dd>Bins; Mondrian categories</dd>
+<dt><strong><code>confidence</code></strong> :&ensp;<code>float in range (0,1)</code>, default <code>= 0.95</code></dt>
+<dd>The confidence level.</dd>
+<dt><strong><code>y_min</code></strong> :&ensp;<code>float</code> or <code>int</code>, default <code>= -np.inf</code></dt>
+<dd>The minimum value to include in prediction intervals.</dd>
+<dt><strong><code>y_max</code></strong> :&ensp;<code>float</code> or <code>int</code>, default <code>= np.inf</code></dt>
+<dd>The maximum value to include in prediction intervals.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>intervals</code></strong> :&ensp;<code>ndarray</code> of <code>shape (n_values, 2)</code></dt>
+<dd>Prediction intervals.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict(self, y_hat=None, sigmas=None, bins=None, confidence=0.95, y_min=-np.inf, y_max=np.inf):
+    &#34;&#34;&#34;
+    Predict using the conformal regressor.
+
+    Parameters
+    ----------
+    y_hat : array-like of shape (n_values,)
+        predicted (regression) values
+    sigmas : array-like of shape (n_values,)
+        Sigmas; difficulty estimates
+    bins : array-like of shape (n_values,)
+        Bins; Mondrian categories
+    confidence : float in range (0,1), default = 0.95
+        The confidence level.
+    y_min : float or int, default = -np.inf
+        The minimum value to include in prediction intervals.
+    y_max : float or int, default = np.inf
+        The maximum value to include in prediction intervals.
+
+    Returns
+    -------
+    intervals : ndarray of shape (n_values, 2)
+        Prediction intervals.
+    &#34;&#34;&#34;
+
+    tic = time.time()
+    intervals = np.zeros((len(y_hat),2))
+    if not self.mondrian:
+        alpha_index = int((1-confidence)*(len(self.alphas)+1))-1
+        if alpha_index &gt;= 0:
+            alpha = self.alphas[alpha_index]
+            if self.normalized:
+                intervals[:,0] = y_hat-alpha*sigmas
+                intervals[:,1] = y_hat+alpha*sigmas
+            else:
+                intervals[:,0] = y_hat-alpha
+                intervals[:,1] = y_hat+alpha
+        else:
+            intervals[:,0] = -np.inf # If the no. of calibration instances is too small for the chosen confidence level, 
+            intervals[:,1] = np.inf  # then the intervals will be of maximum size
+    else:           
+        bin_values, bin_alphas = self.alphas
+        bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
+        alpha_indexes = [int((1-confidence)*(len(bin_alphas[b])+1))-1 for b in range(len(bin_values))]
+        bin_alpha = [bin_alphas[b][alpha_indexes[b]] if alpha_indexes[b]&gt;=0 else np.inf for b in range(len(bin_values))]
+        if self.normalized:
+            for b in range(len(bin_values)):
+                intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]*sigmas[bin_indexes[b]]
+                intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]*sigmas[bin_indexes[b]]
+        else:
+            for b in range(len(bin_values)):
+                intervals[bin_indexes[b],0] = y_hat[bin_indexes[b]]-bin_alpha[b]
+                intervals[bin_indexes[b],1] = y_hat[bin_indexes[b]]+bin_alpha[b]                
+    if y_min &gt; -np.inf:
+        intervals[intervals&lt;y_min] = y_min
+    if y_max &lt; np.inf:
+        intervals[intervals&gt;y_max] = y_max 
+    toc = time.time()
+    self.time_predict = toc-tic            
+    return intervals</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="base.calculate_crps" href="#base.calculate_crps">calculate_crps</a></code></li>
+<li><code><a title="base.get_crps" href="#base.get_crps">get_crps</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="base.ConformalPredictiveSystem" href="#base.ConformalPredictiveSystem">ConformalPredictiveSystem</a></code></h4>
+<ul class="">
+<li><code><a title="base.ConformalPredictiveSystem.evaluate" href="#base.ConformalPredictiveSystem.evaluate">evaluate</a></code></li>
+<li><code><a title="base.ConformalPredictiveSystem.fit" href="#base.ConformalPredictiveSystem.fit">fit</a></code></li>
+<li><code><a title="base.ConformalPredictiveSystem.predict" href="#base.ConformalPredictiveSystem.predict">predict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="base.ConformalPredictor" href="#base.ConformalPredictor">ConformalPredictor</a></code></h4>
+</li>
+<li>
+<h4><code><a title="base.ConformalRegressor" href="#base.ConformalRegressor">ConformalRegressor</a></code></h4>
+<ul class="">
+<li><code><a title="base.ConformalRegressor.evaluate" href="#base.ConformalRegressor.evaluate">evaluate</a></code></li>
+<li><code><a title="base.ConformalRegressor.fit" href="#base.ConformalRegressor.fit">fit</a></code></li>
+<li><code><a title="base.ConformalRegressor.predict" href="#base.ConformalRegressor.predict">predict</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
