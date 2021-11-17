@@ -1,5 +1,7 @@
-# Example Package
 
-This is a simple example package. You can use
-[Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
-to write your content.
+# <ins>C</ins>onformal <ins>Re</ins>gressors and <ins>P</ins>r<ins>e</ins>dictive <ins>S</ins>ystems (crepes)
+#### Developed by Henrik Boström (bostromh@kth.se), 2021
+
+---
+
+...
