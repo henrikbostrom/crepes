@@ -25,7 +25,7 @@ For (many) examples of how to use the package, see [this Jupyter
 notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 
 See detailed documentation for the `crepes` package
-[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html).
+[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html)
 and for the `crepes.fillings` module 
 [here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.fillings.html).
 
