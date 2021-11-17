@@ -16,9 +16,14 @@ transform the point predictions into cumulative distributions
 intervals to be extracted as well as probabilities for the target
 value falling below specified thresholds.
 
-The package implements standard, normalized and Mondrian conformal
-regressors and predictive systems, and allows for using both
-built-in and tailored difficulty estimates and Mondrian categories.
+The main package implements standard, normalized and Mondrian conformal
+regressors and predictive systems; see documentation
+[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html).
+
+The package allows for using any difficulty estimates and Mondrian categories
+that you like, but a module, called `crepes.fillings` is provided with
+some prebuilt options; see documentation
+[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.fillings.html).
 
 For examples of how to use the package, see [this Jupyter
 notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
