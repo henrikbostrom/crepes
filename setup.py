@@ -4,16 +4,16 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="example-pkg-crepes",
+    name="crepes",
     version="0.0.1",
     author="Henrik Boström",
     author_email="bostromh@kth.se",
     description="Conformal regressors and predictive systems (Crepes)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/henrikbostrom/crepes",
     project_urls={
-        "Bug Tracker": "https://github.com/pypa/sampleproject/issues",
+        "Bug Tracker": "https://github.com//henrikbostrom/crepes/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
