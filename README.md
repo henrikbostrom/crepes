@@ -21,7 +21,7 @@ regressors and predictive systems, and allows for using both
 built-in and tailored difficulty estimates and Mondrian categories.
 
 For examples of how to use the package, see [this Jupyter
-notebook](crepes.ipynb).
+notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 
 Author: Henrik Boström (bostromh@kth.se)
 Copyright 2021 Henrik Boström
