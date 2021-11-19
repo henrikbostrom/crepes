@@ -35,11 +35,9 @@ and for the `crepes.fillings` module
 Vovk, V., Gammerman, A. and Shafer, G., 2005. Algorithmic learning in
 a random world. Springer
 
-<a id="2">[2]</a>
-Papadopoulos, H., Proedrou, K., Vovk, V. and Gammerman, A., 2002,
-August. Inductive confidence machines for regression. In European
-Conference on Machine Learning (pp. 345-356). Springer, Berlin,
-Heidelberg.
+<a id="2">[2]</a> Papadopoulos, H., Proedrou, K., Vovk, V. and
+Gammerman, A., 2002.  Inductive confidence machines for
+regression. European Conference on Machine Learning, pp. 345-356.
 
 <a id="3">[3]</a>
 Johansson, U., Boström, H., Löfström, T. and Linusson, H.,
