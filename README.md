@@ -62,16 +62,9 @@ Vovk, V., Petej, I., Nouretdinov, I., Manokhin, V. and Gammerman, A.,
 distributions. Neurocomputing, 397, pp.292-308.
 
 <a id="7">[7]</a>
-
 Boström, H., Johansson, U. and Löfström, T., 2021. Mondrian conformal
 predictive distributions. In Conformal and Probabilistic Prediction
 and Applications. PMLR, 152, pp. 24-38.
-
-<a id="8">[8]</a>
-
-<a id="9">[9]</a>
-
-<a id="10">[10]</a>
 
 ---
 
