@@ -2,10 +2,6 @@
 
 ### Conformal regressors and predictive systems
 
-Install with:
-
-`pip install crepes`
-
 The package implements *conformal regressors*, which transform point
 predictions (produced by any underlying regression model) into
 prediction intervals, for specified levels of confidence.
@@ -20,6 +16,12 @@ The main package `crepes` implements standard, normalized and Mondrian conformal
 regressors and predictive systems, and allows you to use your own difficulty
 estimates and Mondrian categories. There is also a separate module,
 called `crepes.fillings`, which provides some standard options for these.
+
+#### Installation
+
+Install with:
+
+`pip install crepes`
 
 #### Documentation
 
