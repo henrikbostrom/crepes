@@ -23,10 +23,10 @@ called `crepes.fillings`, which provides some standard options for these.
 
 #### Documentation
 
-For the `crepes` package, see 
+For documentation of the `crepes` package, see 
 [here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html).
 
-For the `crepes.fillings` module, see
+For documentation of the `crepes.fillings` module, see
 [here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.fillings.html).
 
 For examples, see [this Jupyter
