@@ -21,6 +21,8 @@ regressors and predictive systems, and allows you to use your own difficulty
 estimates and Mondrian categories. There is also a separate module,
 called `crepes.fillings`, which provides some standard options for these.
 
+#### Documentation
+
 For (many) examples of how to use the package, see [this Jupyter
 notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 
