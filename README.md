@@ -66,7 +66,7 @@ Boström, H., Johansson, U. and Löfström, T., 2021. Mondrian conformal
 predictive distributions. In Conformal and Probabilistic Prediction
 and Applications. PMLR, 152, pp. 24-38.
 
-### &#x200B;
+- - -
 
 Author: Henrik Boström (bostromh@kth.se)
 
