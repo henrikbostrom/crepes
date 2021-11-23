@@ -3,7 +3,7 @@
 ### Conformal regressors and predictive systems
 
 The package implements *conformal regressors*, which transform point
-predictions (produced by any underlying regression model) into
+predictions produced by any underlying regression model into
 prediction intervals, for specified levels of confidence.
 
 The package also implements *conformal predictive systems*, which
@@ -19,9 +19,7 @@ called `crepes.fillings`, which provides some standard options for these.
 
 #### Installation
 
-Install with:
-
-`pip install crepes`
+Install with: `pip install crepes`
 
 #### Documentation
 
