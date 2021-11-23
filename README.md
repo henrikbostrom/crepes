@@ -12,7 +12,7 @@ transform the point predictions into cumulative distributions
 intervals to be extracted as well as probabilities for the target
 value falling below specified thresholds.
 
-The main package `crepes` implements standard, normalized and Mondrian conformal
+The `crepes` package implements standard, normalized and Mondrian conformal
 regressors and predictive systems, and allows you to use your own difficulty
 estimates and Mondrian categories. There is also a separate module,
 called `crepes.fillings`, which provides some standard options for these.
