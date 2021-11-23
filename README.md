@@ -29,7 +29,7 @@ For documentation of the `crepes` package, see
 For documentation of the `crepes.fillings` module, see
 [here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.fillings.html).
 
-For examples, see [this Jupyter
+For examples of how to use the package and module, see [this Jupyter
 notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 
 #### References
