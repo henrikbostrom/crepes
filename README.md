@@ -23,13 +23,14 @@ called `crepes.fillings`, which provides some standard options for these.
 
 #### Documentation
 
-For (many) examples of how to use the package, see [this Jupyter
-notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
+For documentation of the `crepes` package, see 
+[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html).
 
-See detailed documentation for the `crepes` package
-[here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.html)
-and for the `crepes.fillings` module 
+For documentation of the `crepes.fillings` module, see
 [here](http://htmlpreview.github.io/?https://github.com/henrikbostrom/crepes/blob/main/docs/crepes.fillings.html).
+
+For examples, see [this Jupyter
+notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 
 #### References
 
