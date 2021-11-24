@@ -29,31 +29,28 @@ notebook](https://github.com/henrikbostrom/crepes/blob/main/crepes.ipynb).
 #### References
 
 <a id="1">[1]</a>
-Vovk, V., Gammerman, A. and Shafer, G., 2005. Algorithmic learning in
-a random world. Springer
+Vovk, V., Gammerman, A. and Shafer, G., 2005. [Algorithmic learning in
+a random world](https://link.springer.com/book/10.1007/b106715). Springer
 
 <a id="2">[2]</a> Papadopoulos, H., Proedrou, K., Vovk, V. and
-Gammerman, A., 2002.  Inductive confidence machines for
-regression. European Conference on Machine Learning, pp. 345-356.
+Gammerman, A., 2002.  [Inductive confidence machines for regression](https://link.springer.com/chapter/10.1007/3-540-36755-1_29). European Conference on Machine Learning, pp. 345-356.
 
 <a id="3">[3]</a>
 Johansson, U., Boström, H., Löfström, T. and Linusson, H.,
-2014. Regression conformal prediction with random forests. Machine
-learning, 97(1-2), pp. 155-176.
+2014. [Regression conformal prediction with random forests](https://link.springer.com/article/10.1007/s10994-014-5453-0). Machine learning, 97(1-2), pp. 155-176.
 
 <a id="4">[4]</a>
 Boström, H., Linusson, H., Löfström, T. and Johansson, U.,
-2017. Accelerating difficulty estimation for conformal regression
-forests. Annals of Mathematics and Artificial Intelligence, 81(1-2),
-pp.125-144.
+2017. [Accelerating difficulty estimation for conformal regression
+forests](https://link.springer.com/article/10.1007/s10472-017-9539-9). Annals of Mathematics and Artificial Intelligence, 81(1-2), pp.125-144.
 
 <a id="5">[5]</a>
 Boström, H. and Johansson, U., 2020. [Mondrian conformal regressors](https://proceedings.mlr.press/v128/bostrom20a.html). In Conformal and Probabilistic Prediction and Applications. PMLR, 128, pp. 114-133.
 
 <a id="6">[6]</a>
 Vovk, V., Petej, I., Nouretdinov, I., Manokhin, V. and Gammerman, A.,
-2020. Computationally efficient versions of conformal predictive
-distributions. Neurocomputing, 397, pp.292-308.
+2020. [Computationally efficient versions of conformal predictive
+distributions](https://www.aminer.org/pub/5e09aac9df1a9c0c416c9b70/computationally-efficient-versions-of-conformal-predictive-distributions). Neurocomputing, 397, pp.292-308.
 
 <a id="7">[7]</a>
 Boström, H., Johansson, U. and Löfström, T., 2021. [Mondrian conformal
