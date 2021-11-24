@@ -2,19 +2,13 @@
 
 ### Conformal regressors and predictive systems
 
-`crepes` is a Python package that implements *conformal regressors*, which transform point
-predictions produced by any underlying regression model into
-prediction intervals, for specified levels of confidence.
-
-The package also implements *conformal predictive systems*, which
-transform the point predictions into cumulative distributions
-(conformal predictive distributions), e.g., allowing prediction
-intervals to be extracted as well as probabilities for the target
-value falling below specified thresholds.
+`crepes` is a Python package for generating *conformal regressors*, which transform point
+predictions produced by any underlying regression model into prediction intervals for specified levels of confidence.The package also implements *conformal predictive systems*, which
+transform the point predictions into cumulative distribution functions.
 
 The `crepes` package implements standard, normalized and Mondrian conformal
-regressors and predictive systems, and allows you to use your own difficulty
-estimates and Mondrian categories. There is also a separate module,
+regressors and predictive systems. While the package allows you to use your own difficulty
+estimates and Mondrian categories, there is also a separate module,
 called `crepes.fillings`, which provides some standard options for these.
 
 #### Installation
@@ -54,8 +48,7 @@ forests. Annals of Mathematics and Artificial Intelligence, 81(1-2),
 pp.125-144.
 
 <a id="5">[5]</a>
-Boström, H. and Johansson, U., 2020. Mondrian conformal regressors. In
-Conformal and Probabilistic Prediction and Applications. PMLR, 128, pp. 114-133.
+Boström, H. and Johansson, U., 2020. [Mondrian conformal regressors](https://proceedings.mlr.press/v128/bostrom20a.html). In Conformal and Probabilistic Prediction and Applications. PMLR, 128, pp. 114-133.
 
 <a id="6">[6]</a>
 Vovk, V., Petej, I., Nouretdinov, I., Manokhin, V. and Gammerman, A.,
@@ -63,9 +56,9 @@ Vovk, V., Petej, I., Nouretdinov, I., Manokhin, V. and Gammerman, A.,
 distributions. Neurocomputing, 397, pp.292-308.
 
 <a id="7">[7]</a>
-Boström, H., Johansson, U. and Löfström, T., 2021. Mondrian conformal
-predictive distributions. In Conformal and Probabilistic Prediction
-and Applications. PMLR, 152, pp. 24-38.
+Boström, H., Johansson, U. and Löfström, T., 2021. [Mondrian conformal
+predictive distributions](https://proceedings.mlr.press/v152/bostrom21a.html).
+In Conformal and Probabilistic Prediction and Applications. PMLR, 152, pp. 24-38.
 
 - - -
 
