@@ -90,7 +90,7 @@ array([[  7576.18, 578275.82],
 
 The above intervals are not normalized, i.e., they are all of the same size (at least before they are cut). We could make the intervals more informative through normalization using difficulty estimates; more difficult instances will be assigned wider intervals.
 
-We will here use the helper function `sigma_knn` for this purpose. It estimates the difficulty by the mean absolute errors of the k (default `k=5`) nearest neighbors to each instance in the calibration set. A small value (beta) is added to the estimates, which may be given through a (named) argument to the function; below we just use the default, i.e., `beta=0.01`.
+We will here use the helper function `sigma_knn` for this purpose. It estimates the difficulty by the mean absolute errors of the k (default `k=5`) nearest neighbors to each instance in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
 
 ```python
 sigmas_cal = sigma_knn(X=X_cal, residuals=residuals_cal)
@@ -126,7 +126,7 @@ array([[     0.        , 645527.3140099 ],
        [305546.225071  , 805960.714929  ]])
 ```
 
-Depending on the employed difficulty estimator, the normalized intervals may sometimes be unreasonably large, in the sense that they may be several times larger than any previously observed error. Moreover, if the difficulty estimator is not very informative, e.g., completely random, the varying interval sizes may give a false impression of that we can expect lower prediction errors for instances with tighter intervals. Ideally, a difficulty estimator providing little or no informatoion on the expected error should instead lead to more uniformly distributed interval sizes.
+Depending on the employed difficulty estimator, the normalized intervals may sometimes be unreasonably large, in the sense that they may be several times larger than any previously observed error. Moreover, if the difficulty estimator is not very informative, e.g., completely random, the varying interval sizes may give a false impression of that we can expect lower prediction errors for instances with tighter intervals. Ideally, a difficulty estimator providing little or no information on the expected error should instead lead to more uniformly distributed interval sizes.
 
 A Mondrian conformal regressor can be used to address these problems, by dividing the object space into non-overlapping so-called Mondrian categories, and forming a (standard) conformal regressor for each category. The category membership of the objects can be provided as an additional argument, named `bins`, for the `fit` method.
 
