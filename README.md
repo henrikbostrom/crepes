@@ -8,7 +8,7 @@ The `crepes` package implements standard, normalized and Mondrian conformal regr
 
 Install with: `pip install crepes`
 
-## Quick start
+## Quickstart
 
 ### Conformal regressors
 
