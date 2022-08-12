@@ -256,7 +256,7 @@ For documentation of the `crepes.fillings` module, see [here](http://htmlpreview
 
 If you use `crepes` for a scientific publication, you may cite the following paper:
 
-Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179.
+Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179. [Link](https://copa-conference.com/papers/COPA2022_paper_11.pdf)
 
 Bibtex entry:
 
