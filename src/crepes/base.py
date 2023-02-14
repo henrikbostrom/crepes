@@ -358,9 +358,9 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                   i in bin_indexes[b]])
                         for b in range(len(bin_values))]
         no_prec_result_cols = 0
-        if type(lower_percentiles) in [int, float]:
+        if isinstance(lower_percentiles, (int, float)):
             lower_percentiles = [lower_percentiles]
-        if type(higher_percentiles) in [int, float]:
+        if isinstance(higher_percentiles, (int, float)):
             higher_percentiles = [higher_percentiles]
         if lower_percentiles is None:
             lower_percentiles = []
@@ -373,7 +373,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
         if y is not None:
             no_prec_result_cols += 1
             gammas = np.random.rand(len(y_hat))
-            if type(y) in [int, float]:
+            if isinstance(y, (int, float)):
                 if not self.mondrian:
                     result[:,0] = np.array([(len(np.argwhere(cpds[i]<y)) \
                                              + gammas[i])/(len(cpds[i])+1)
@@ -384,7 +384,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                             [(len(np.argwhere(cpds[b][i]<y)) \
                               + gammas[bin_indexes[b]][i])/(len(cpds[b])+1)
                              for i in range(len(cpds[b]))])
-            elif type(y) in [list, np.ndarray] and len(y) == len(y_hat):
+            elif isinstance(y, (list, np.ndarray)) and len(y) == len(y_hat):
                 if not self.mondrian:
                     result[:,0] = np.array([(len(np.argwhere(cpds[i]<y[i])) \
                                              + gammas[i])/(len(cpds[i])+1)
