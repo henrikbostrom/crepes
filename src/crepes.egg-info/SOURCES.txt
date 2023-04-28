@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+src/crepes/__init__.py
+src/crepes/base.py
+src/crepes/fillings.py
+src/crepes.egg-info/PKG-INFO
+src/crepes.egg-info/SOURCES.txt
+src/crepes.egg-info/dependency_links.txt
+src/crepes.egg-info/requires.txt
+src/crepes.egg-info/top_level.txt

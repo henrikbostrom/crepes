@@ -1,3 +1,18 @@
+Metadata-Version: 2.1
+Name: crepes
+Version: 0.2.0
+Summary: Conformal regressors and predictive systems (crepes)
+Home-page: https://github.com/henrikbostrom/crepes
+Author: Henrik Boström
+Author-email: bostromh@kth.se
+Project-URL: Bug Tracker, https://github.com//henrikbostrom/crepes/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # `crepes`
 
 `crepes` is a Python package for generating *conformal regressors*, which transform point predictions of any underlying regression model into prediction intervals for specified levels of confidence. The package also implements *conformal predictive systems*, which transform the point predictions into cumulative distribution functions.

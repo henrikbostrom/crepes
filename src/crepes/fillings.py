@@ -1,12 +1,12 @@
 """Conformal regressors and predictive systems (crepes) fillings
 
-Helper functions to generate residuals and sigmas, with and without
-out-of-bag predictions, for conformal regressors and conformal
-predictive systems.
+Helper functions to generate difficulty estimates, with and without
+out-of-bag predictions, and Mondrian categories for conformal regressors
+and conformal predictive systems.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2022 Henrik Boström
+Copyright 2023 Henrik Boström
 
 License: BSD 3 clause
 
@@ -100,43 +100,97 @@ def get_oob(seed, n_samples):
                                                            n_samples),
                        minlength=n_samples) == 0
 
-def sigma_knn(X=None, residuals=None, X_test=None, k=5, beta=0.01):
+def sigma_knn(X=None, X_ref=None, y_ref=None, residuals=None, k=25, beta=0.01):
     """
-    Provides difficulty estimates for a set of objects using the absolute 
-    residuals of the nearest neighbors.
+    Provides difficulty estimates for a set of objects using the 
+    distance to, target standard deviation or absolute residuals of the 
+    nearest neighbors.
 
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features), default=None
         set of objects
-    residuals : array-like of shape (n_samples,), default=None
-        residuals of the objects X
-    X_test : array-like of shape (n_test_samples, n_features), default=None
-        set of test objects
-    k: int, default=5
+    X_ref : array-like of shape (n_ref_samples, n_features), default=None
+        set of reference objects
+    y_ref : array-like of shape (n_ref_samples,), default=None
+        target values for the reference objects X_ref
+    residuals : array-like of shape (n_ref_samples,), default=None
+        residuals for the reference objects X_ref
+    k: int, default=25
         number of neighbors
     beta : int or float, default=0.01 
         value to add to the difficulty estimates
         
     Returns
     -------
-    sigmas : array-like of shape (n_samples,) or (n_test_samples)
-        difficulty estimates; if X_test is None, sigmas will contain one int 
-        or float for each object in X; otherwise, sigmas will contain one int 
-        or float for each object in X_test
+    sigmas : array-like of shape (n_samples,)
+        difficulty estimates
+    """
+    nn = NearestNeighbors(n_neighbors=k, n_jobs=-1)
+    scaler = MinMaxScaler(clip=True)
+    scaler.fit(X_ref)
+    X_ref_scaled = scaler.transform(X_ref)
+    nn.fit(X_ref_scaled)
+    X_scaled = scaler.transform(X)
+    if residuals is None and y_ref is None:
+        distances, neighbor_indexes = nn.kneighbors(X_scaled,
+                                                    return_distance=True)
+        sigmas = np.array([np.sum(distances[i])
+                           for i in range(len(distances))]) + beta
+    elif residuals is None:
+        neighbor_indexes = nn.kneighbors(X_scaled, return_distance=False)
+        sigmas = np.array([np.std(y_ref[indexes])
+                           for indexes in neighbor_indexes]) + beta
+    else:
+        neighbor_indexes = nn.kneighbors(X_scaled, return_distance=False)
+        sigmas = np.array([np.mean(np.abs(residuals[indexes]))
+                           for indexes in neighbor_indexes]) + beta
+    return sigmas
+
+def sigma_knn_oob(X=None, y=None, residuals=None, k=25, beta=0.01):
+    """
+    Provides difficulty estimates for a set of objects using the 
+    distance to, target standard deviation or absolute residuals of 
+    the nearest neighbors.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features), default=None
+        set of objects
+    X_ref : array-like of shape (n_ref_samples, n_features), default=None
+        set of reference objects
+    y_ref : array-like of shape (n_ref_samples,), default=None
+        target values for the reference objects X_ref
+    residuals : array-like of shape (n_ref_samples,), default=None
+        residuals for the reference objects X_ref
+    k: int, default=25
+        number of neighbors
+    beta : int or float, default=0.01 
+        value to add to the difficulty estimates
+        
+    Returns
+    -------
+    sigmas : array-like of shape (n_samples,)
+        difficulty estimates
     """
     nn = NearestNeighbors(n_neighbors=k, n_jobs=-1)
     scaler = MinMaxScaler(clip=True)
     scaler.fit(X)
     X_scaled = scaler.transform(X)
     nn.fit(X_scaled)
-    if X_test is None:
+    if residuals is None and y is None:
+        distances, neighbor_indexes = nn.kneighbors(return_distance=True)
+        sigmas = np.array([np.sum(distances[i])
+                           for i in range(len(distances))]) + beta
+    elif residuals is None:
         neighbor_indexes = nn.kneighbors(return_distance=False)
+        sigmas = np.array([np.std(y[indexes])
+                           for indexes in neighbor_indexes]) + beta
     else:
-        X_test_scaled = scaler.transform(X_test)
-        neighbor_indexes = nn.kneighbors(X_test_scaled, return_distance=False)
-    return np.array([np.mean(np.abs(residuals[indexes]))
-                     for indexes in neighbor_indexes]) + beta
+        neighbor_indexes = nn.kneighbors(return_distance=False)
+        sigmas = np.array([np.mean(np.abs(residuals[indexes]))
+                           for indexes in neighbor_indexes]) + beta
+    return sigmas
 
 def binning(values=None, bins=10):
     """
