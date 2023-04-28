@@ -97,8 +97,8 @@ autoclass_content = "both"
 autodoc_member_order = "bysource"
 autoclass_member_order = 'bysource'
 
-#autosummary_generate = True
-#autosummary_imported_members = True
+autosummary_generate = True
+autosummary_imported_members = True
 
 # -- Options for todo extension ----------------------------------------------
 
