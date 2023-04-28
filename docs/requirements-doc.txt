@@ -1,6 +1,7 @@
 sphinx
 numpy
 pandas
+sklearn
 numpydoc
 nbsphinx
 myst_parser
