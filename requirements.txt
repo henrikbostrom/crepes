@@ -1,5 +1,0 @@
-sphinx
-numpydoc
-nbsphinx
-myst_parser
-pydata_sphinx_theme
