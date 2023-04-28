@@ -1,4 +1,6 @@
 sphinx
+numpy
+pandas
 numpydoc
 nbsphinx
 myst_parser
