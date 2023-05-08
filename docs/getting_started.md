@@ -2,10 +2,16 @@
 
 ## Installation
 
-Install with:
+**From PyPI**
 
 ```bash
 pip install crepes
+```
+
+**From conda-forge**
+
+```bash
+conda install -c conda-forge crepes
 ```
 
 ## Quickstart
