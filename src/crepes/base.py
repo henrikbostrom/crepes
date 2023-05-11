@@ -11,14 +11,14 @@ Copyright 2023 Henrik Boström
 License: BSD 3 clause
 """
 
+__version__ = "0.3.0"
+
 import numpy as np
 import pandas as pd
 import time
 import warnings
 
 warnings.simplefilter("always", UserWarning)
-
-__version__ = "0.2.0"
 
 class ConformalPredictor():
     """

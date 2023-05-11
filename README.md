@@ -6,13 +6,13 @@ The `crepes` package implements standard, normalized and Mondrian conformal regr
 
 ## Installation
 
-**From PyPI**
+From [PyPI](https://pypi.org/project/crepes/)
 
 ```bash
 pip install crepes
 ```
 
-**From conda-forge**
+From [conda-forge](https://anaconda.org/conda-forge/crepes)
 
 ```bash
 conda install -c conda-forge crepes
@@ -26,11 +26,11 @@ For complete documentation of the `crepes` package, see [here](https://crepes.re
 
 ### Conformal regressors
 
-We first import the main class and two helper functions:
+We first import the main class from `crepes` and a helper class and function from `crepes.fillings`:
 
 ```python
 from crepes import ConformalRegressor
-from crepes.fillings import sigma_knn, binning
+from crepes.fillings import DifficultyEstimator, binning
 ```
 
 We will illustrate the above using a dataset from [www.openml.org](https://www.openml.org) and a `RandomForestRegressor` from [sklearn](https://scikit-learn.org):
@@ -104,10 +104,13 @@ array([[ 152258.55,  629705.45],
 
 The above intervals are not normalized, i.e., they are all of the same size (at least before they are cut). We could make the intervals more informative through normalization using difficulty estimates; more difficult instances will be assigned wider intervals.
 
-We will use the helper function `sigma_knn` for this purpose. Here it estimates the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each instance in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
+We will use a `DifficultyEstimator` for this purpose. Here it estimates the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each instance in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
 
 ```python
-sigmas_cal = sigma_knn(X=X_cal, X_ref=X_prop_train, y_ref=y_prop_train)
+de = DifficultyEstimator()
+de.fit(X_prop_train, y=y_prop_train)
+
+sigmas_cal = de.apply(X_cal)
 ```
 
 The difficulty estimates and residuals of the calibration examples can now be used to form a normalized conformal regressor:
@@ -117,10 +120,10 @@ cr_norm = ConformalRegressor()
 cr_norm.fit(residuals=residuals_cal, sigmas=sigmas_cal)
 ```
 
-To generate prediction intervals for the test set using the normalized conformal regressor, we need difficulty estimates for the test set too, which we get using the same helper function. 
+To generate prediction intervals for the test set using the normalized conformal regressor, we need difficulty estimates for the test set too, which we get using the same difficulty estimator as for the calibration set:
 
 ```python
-sigmas_test = sigma_knn(X=X_test, X_ref=X_prop_train, y_ref=y_prop_train)
+sigmas_test = de.apply(X_test)
 ```
 
 Now we can obtain the prediction intervals, using the point predictions and difficulty estimates for the test set:
@@ -131,13 +134,13 @@ intervals_norm = cr_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test,
 ```
 
 ```numpy
-array([[205959.07517616, 576004.92482384],
-       [133206.86035366, 438925.51964634],
-       [291925.81345507, 879201.32654493],
+array([[ 226719.06607977,  555244.93392023],
+       [ 173767.90753715,  398364.47246285],
+       [ 124690.70166966, 1046436.43833034],
        ...,
-       [622212.95112744, 989463.48887256],
-       [ 98805.77755066, 410775.16244934],
-       [197248.38670265, 474405.21329735]])
+       [ 607949.71540572, 1003726.72459428],
+       [ 188671.3752278 ,  320909.5647722 ],
+       [ 145340.39076824,  526313.20923176]])
 ```
 
 Depending on the employed difficulty estimator, the normalized intervals may sometimes be unreasonably large, in the sense that they may be several times larger than any previously observed error. Moreover, if the difficulty estimator is not very informative, e.g., completely random, the varying interval sizes may give a false impression of that we can expect lower prediction errors for instances with tighter intervals. Ideally, a difficulty estimator providing little or no information on the expected error should instead lead to more uniformly distributed interval sizes.
@@ -183,7 +186,7 @@ array([[ 206379.7 ,  575584.3 ],
 
 The interface to a `ConformalPredictiveSystem` is very similar to that of a conformal regressor; by providing just the residuals, we get a standard conformal predictive system, by providing also difficulty estimates, we get a normalized conformal predictive system and by providing labels for Mondrian categories (bins), we get a Mondrian conformal predictive system.
 
-The main difference to conformal regressors concerns the output; instead of prediction intervals, conformal predictive systems produce complete cumulative distribution functions (conformal predictive distributions). From these we can generate prediction intervals, but we can also obtain calibrated point predictions, as well as p values for given target values.
+The main difference to conformal regressors concerns the output; instead of prediction intervals, conformal predictive systems produce complete cumulative distribution functions (conformal predictive distributions). From these we can generate prediction intervals, but we can also obtain percentiles, calibrated point predictions, as well as p-values for given target values.
 
 Let us fit a Mondrian normalized conformal predictive system, using the above residuals and difficulty estimates (sigmas), and where the Mondrian categories (bins) are formed using the point predictions for the calibration set:
 
@@ -215,16 +218,16 @@ intervals = cps_mond_norm.predict(y_hat=y_hat_test,
 ```
 
 ```numpy
-array([[ 226536.76784152,  519404.56955659],
-       [ 170043.51497485,  376524.37491457],
-       [ 192376.08061079,  994115.461665  ],
+array([[ 245826.3422693 ,  517315.83618985],
+       [ 145348.03415848,  392968.15587997],
+       [ 148774.65461212, 1034300.84195976],
        ...,
-       [ 594183.11971763, 1010273.54816378],
-       [ 186478.52365968,  308050.53035102],
-       [ 167498.01540504,  485813.1329371 ]])
+       [ 589200.5725957 , 1057013.89102007],
+       [ 171938.29382952,  317732.31611141],
+       [ 167498.01540504,  482328.98552632]])
 ```
 
-We can also get the p values for the true target values; they should be uniformly distributed, if the test objects are drawn from the same underlying distribution as the calibration examples.
+We can also get the p-values for the true target values; they should be uniformly distributed, if the test objects are drawn from the same underlying distribution as the calibration examples.
 
 ```python
 p_values = cps_mond_norm.predict(y_hat=y_hat_test,
@@ -234,13 +237,13 @@ p_values = cps_mond_norm.predict(y_hat=y_hat_test,
 ```
 
 ```numpy
-array([[0.98298087],
-       [0.90125379],
-       [0.41770673],
+array([[0.98603614],
+       [0.87178256],
+       [0.44201984],
        ...,
-       [0.04659288],
-       [0.07914733],
-       [0.31090332]])
+       [0.05688804],
+       [0.09473604],
+       [0.31069913]])
 ```
 
 We may request that the predict method returns the full conformal predictive distribution (CPD) for each test instance, as defined by the threshold values, by setting `return_cpds=True`. The format of the distributions vary with the type of conformal predictive system; for a standard and normalized CPS, the output is an array with a row for each test instance and a column for each calibration instance (residual), while for a Mondrian CPS, the default output is a vector containing one CPD per test instance, since the number of values may vary between categories.

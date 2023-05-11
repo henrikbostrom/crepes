@@ -1,5 +1,19 @@
 # Changelog
+	
+## v0.3.0 (11/05/2023)
 
+### Features
+
+- The class `DifficultyEstimator` was added to `crepes.fillings`, incorporating functionality provided by the previous functions `sigma_knn`, `sigma_knn_oob`, `sigma_variance`, and `sigma_variance_oob`, which now are superfluous and have been removed from `crepes.fillings`. See [the documentation](https://crepes.readthedocs.io/en/latest/crepes.fillings.html) for the interface to objects of the class through the `fit` and `apply` methods.
+
+- An option to normalize difficulty estimates, by providing `scaler=True` to the `fit` method of `DifficultyEstimator`, has been included.
+
+### Fixes
+
+- The Jupyter notebook `crepes_nb.ipynb` has been updated to incorporate the above features
+
+- The documentation of the [crepes package](https://crepes.readthedocs.io/en/latest/crepes.html) and the [crepes.fillings module](https://crepes.readthedocs.io/en/latest/crepes.fillings.html) has been updated with links to source code, additional examples and notes.
+	
 ## v0.2.0 (28/04/2023)
 
 ### Features
