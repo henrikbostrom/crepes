@@ -1,4 +1,4 @@
-<p align="center"><a href="https://crepes.readthedocs.io"><img alt="" width=70% src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/237790630-30f250d3-6464-4f06-90c0-58052ec10957.png"></a></p>
+<p align="center"><a href="https://crepes.readthedocs.io"><img alt="" width=70% src=""></a></p>
 
 <p align="center">
 <a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg" alt="PyPI version" height=20 align="center"></a>
