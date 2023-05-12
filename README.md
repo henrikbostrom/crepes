@@ -1,4 +1,4 @@
-<p align="center"><a href="https://crepes.readthedocs.io"><img alt="" width=70% src=""></a></p>
+<p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/237925720-62c0b576-910e-4f28-ba5a-9b3bf5f09c74.png"></a></p>
 
 <p align="center">
 <a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg" alt="PyPI version" height=20 align="center"></a>
@@ -32,7 +32,7 @@ conda install -c conda-forge crepes
 
 ## Documentation
 
-For complete documentation, see [here](https://crepes.readthedocs.io/en/latest/).
+For complete documentation of the `crepes` package, see [here](https://crepes.readthedocs.io/en/latest/).
 
 ## Quickstart
 
@@ -277,7 +277,7 @@ For additional examples of how to use the package and module, including how to u
 
 ## Citing crepes
 
-If you use `crepes` for a scientific publication, you are kindly requested to cite the following paper:
+If you use `crepes` for a scientific publication, you may cite the following paper:
 
 Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179. [Link](https://copa-conference.com/papers/COPA2022_paper_11.pdf)
 
