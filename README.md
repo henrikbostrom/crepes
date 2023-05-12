@@ -1,4 +1,4 @@
-<p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/237925720-62c0b576-910e-4f28-ba5a-9b3bf5f09c74.png"></a></p>
+<p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/237950772-1d4487b1-7f43-4ce0-9db0-032baeddbece.png"></a></p>
 
 <p align="center">
 <a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg" alt="PyPI version" height=20 align="center"></a>
@@ -9,8 +9,6 @@
 <a href="https://anaconda.org/conda-forge/crepes"><img src="https://anaconda.org/conda-forge/crepes/badges/latest_release_date.svg" alt="Release date" height=20 align="center"></a>
 </p>
 <br>
-
-# crepes - conformal regressors and predictive systems
 
 `crepes` is a Python package for generating *conformal regressors*, which transform point predictions of any underlying regression model into prediction intervals for specified levels of confidence. The package also implements *conformal predictive systems*, which transform the point predictions into cumulative distribution functions.
 
