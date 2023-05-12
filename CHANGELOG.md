@@ -8,6 +8,8 @@
 
 - An option to normalize difficulty estimates, by providing `scaler=True` to the `fit` method of `DifficultyEstimator`, has been included.
 
+- An option to install the package from [conda-forge](https://anaconda.org/conda-forge/crepes) has been included.
+
 ### Fixes
 
 - The Jupyter notebook `crepes_nb.ipynb` has been updated to incorporate the above features
