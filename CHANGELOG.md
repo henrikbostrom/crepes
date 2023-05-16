@@ -1,5 +1,21 @@
 # Changelog
 	
+## v0.4.0 (16/05/2023)
+
+### Feature
+
+- The class `Wrap` has been added to `crepes`, allowing for easily extending the underlying learner with methods for forming, and making predictions with, conformal regressors and predictive systems. See [the documentation](https://crepes.readthedocs.io/en/latest/crepes.html) for the interface to objects of the class through the `calibrate`, `predict_int` and `predict_cps` methods, in addition to the `fit` and `predict` methods of the wrapped learner.
+
+### Fixes
+
+- A Jupyter notebook `crepes_nb_wrap.ipynb` has been added to the documentation to illustrate the use of the `Wrap` class.
+
+- The output result array of a conformal predictive system is converted to a vector if the array contains one column only.
+
+- The documentation has been updated and now includes links to classes and methods.
+	
+- `crepes.fillings` has been renamed to `crepes.extras`
+	
 ## v0.3.0 (11/05/2023)
 
 ### Features
@@ -23,13 +39,13 @@
 - Modified `sigma_knn` to allow for calculating difficulty in three ways; using distances only, using standard deviation of the target and using the absolute residuals of the nearest neighbors.
 - Added `sigma_knn_oob` in `crepes.fillings`
 - Renamed the performance metric `efficiency` to `eff_mean` (mean efficiency) and added `eff_med` (median efficiency) to the `evaluate` method in `ConformalRegressor` and `ConformalPredictiveSystem`
-- Added warning messages for the case that the calibration set  is too small for the specified confidence level or lower/higher percentiles [thanks to Geethen for highlighting this]
+- Added warning messages for the case that the calibration set  is too small for the specified confidence level or lower/higher percentiles [thanks to @Geethen for highlighting this]
 - Added examples in comments
 - The documentation has been generated using Sphinx and resides in [crepes.readthedocs.io](https://crepes.readthedocs.io/en/latest/)
 
 ### Fixes
 
-- Extended type checks to include NumPy floats and integers [thanks to patpizio for pointing this out]
+- Extended type checks to include NumPy floats and integers [thanks to @patpizio for pointing this out]
 - Corrected a bug in the assignment of min/max values for Mondrian conformal predictive systems
 - The Jupyter notebook with examples has been updated, changed name to `crepes_nb.ipynb` and moved to the docs folder 
 - Changed the default `k` to 25 in `sigma_knn`
