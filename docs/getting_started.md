@@ -16,57 +16,53 @@ conda install -c conda-forge crepes
 
 ## Quickstart
 
-### Conformal regressors
-
-We first import the main class from `crepes` and a helper class and function from `crepes.fillings`:
+We first import the class `Wrap` from `crepes` and a helper class and function from `crepes.extras`:
 
 ```python
-from crepes import ConformalRegressor
-from crepes.fillings import DifficultyEstimator, binning
+from crepes import Wrap
+from crepes.extras import DifficultyEstimator, binning
 ```
 
-We will illustrate the above using a dataset from [www.openml.org](https://www.openml.org) and a `RandomForestRegressor` from [sklearn](https://scikit-learn.org):
+Let us also import some additional functions and a class to illustrate the above using a dataset from [www.openml.org](https://www.openml.org) and a `RandomForestRegressor` from [sklearn](https://scikit-learn.org):
 
 ```python
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
+```
 
+We will now import and split the dataset into a training and a test set, and then further split the training set into a proper training set and a calibration set:
+
+```python
 dataset = fetch_openml(name="house_sales", version=3)
 X = dataset.data.values.astype(float)
 y = dataset.target.values.astype(float)
-```
 
-We now first split the dataset into a training and a test set, and then further split the training set into a proper training set and a calibration set. Finally, we fit a random forest to the proper training set and apply it to obtain point predictions for the test set (nothing new here).
-
-```python
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
+
 X_prop_train, X_cal, y_prop_train, y_cal = train_test_split(X_train, y_train,
                                                             test_size=0.25)
-
-learner = RandomForestRegressor() 
-learner.fit(X_prop_train, y_prop_train)
-y_hat_test = learner.predict(X_test)
 ```
 
-Now, we will make use of the calibration set. We apply the model also to the calibration objects and calculate the residuals.
+Let us now "wrap" a random forest regressor and fit it (in the usual way) to the proper training set:
+
 ```python
-y_hat_cal = learner.predict(X_cal)
-residuals_cal = y_cal - y_hat_cal
+rf = Wrap(RandomForestRegressor())
+rf.fit(X_prop_train, y_prop_train)
 ```
 
-The latter is just what we need to fit a standard conformal regressor:
+We can use the fitted model to obtain point predictions (again, in the usual way) for the calibration objects, from which we can calculate the residuals. These residuals are exactly what we need to "calibrate" the learner: 
+
 ```python
-cr_std = ConformalRegressor()
-cr_std.fit(residuals=residuals_cal)
+residuals = y_cal - rf.predict(X_cal)
+rf.calibrate(residuals)
 ```
 
-We can now apply the conformal regressor to get prediction intervals for the test objects, using the point predictions as input, where the probability of not including the correct target in an interval is 1-confidence:
+A (standard) conformal regressor was formed (under the hood). We may now use it for obtaining prediction intervals for the test set, here using a confidence level of 99%:
+
 ```python
-std_intervals = cr_std.predict(y_hat=y_hat_test, confidence=0.99)
+rf.predict_int(X_test, confidence=0.99)
 ```
-
-The output is a [NumPy](https://numpy.org) array, specifying the lower and upper bound of each interval:
 
 ```numpy
 array([[-171902.2 ,  953866.2 ],
@@ -78,10 +74,12 @@ array([[-171902.2 ,  953866.2 ],
        [-227057.4 ,  898711.  ]])
 ```
 
+The output is a [NumPy](https://numpy.org) array with a row for each test instance, and where the two columns specify the lower and upper bound of each prediction interval.
+
 We may request that the intervals are cut to exclude impossible values, in this case below 0, and if we also rely on the default confidence level (0.95), the output intervals will be a bit tighter:
 
 ```python
-intervals_std = cr_std.predict(y_hat=y_hat_test, y_min=0)
+rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
@@ -94,9 +92,11 @@ array([[ 152258.55,  629705.45],
        [  97103.35,  574550.25]])
 ```
 
-The above intervals are not normalized, i.e., they are all of the same size (at least before they are cut). We could make the intervals more informative through normalization using difficulty estimates; more difficult instances will be assigned wider intervals.
+The above intervals are not normalized, i.e., they are all of the same size (at least before they are cut). We could make them more informative through normalization using difficulty estimates; objects considered more difficult will be assigned wider intervals.
 
-We will use a `DifficultyEstimator` for this purpose. Here it estimates the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each instance in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
+We will use a `DifficultyEstimator` for this purpose. Here it estimates the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each object in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
+
+We first obtain the difficulty estimates for the calibration set:
 
 ```python
 de = DifficultyEstimator()
@@ -105,24 +105,16 @@ de.fit(X_prop_train, y=y_prop_train)
 sigmas_cal = de.apply(X_cal)
 ```
 
-The difficulty estimates and residuals of the calibration examples can now be used to form a normalized conformal regressor:
+These can now be used for the calibration, which (under the hood) will produce a normalized conformal regressor:
 
 ```python
-cr_norm = ConformalRegressor()
-cr_norm.fit(residuals=residuals_cal, sigmas=sigmas_cal)
+rf.calibrate(residuals, sigmas=sigmas_cal)
 ```
 
-To generate prediction intervals for the test set using the normalized conformal regressor, we need difficulty estimates for the test set too, which we get using the same difficulty estimator as for the calibration set:
-
+We need difficulty estimates for the test set too, which we provide as input to `predict_int`:
 ```python
 sigmas_test = de.apply(X_test)
-```
-
-Now we can obtain the prediction intervals, using the point predictions and difficulty estimates for the test set:
-
-```python
-intervals_norm = cr_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test, 
-                                 y_min=0)
+rf.predict_int(X_test, sigmas=sigmas_test, y_min=0)
 ```
 
 ```numpy
@@ -135,33 +127,22 @@ array([[ 226719.06607977,  555244.93392023],
        [ 145340.39076824,  526313.20923176]])
 ```
 
-Depending on the employed difficulty estimator, the normalized intervals may sometimes be unreasonably large, in the sense that they may be several times larger than any previously observed error. Moreover, if the difficulty estimator is not very informative, e.g., completely random, the varying interval sizes may give a false impression of that we can expect lower prediction errors for instances with tighter intervals. Ideally, a difficulty estimator providing little or no information on the expected error should instead lead to more uniformly distributed interval sizes.
+Depending on the employed difficulty estimator, the normalized intervals may sometimes be unreasonably large, in the sense that they may be several times larger than any previously observed error. Moreover, if the difficulty estimator is uninformative, e.g., completely random, the varying interval sizes may give a false impression of that we can expect lower prediction errors for instances with tighter intervals. Ideally, a difficulty estimator providing little or no information on the expected error should instead lead to more uniformly distributed interval sizes.
 
 A Mondrian conformal regressor can be used to address these problems, by dividing the object space into non-overlapping so-called Mondrian categories, and forming a (standard) conformal regressor for each category. The category membership of the objects can be provided as an additional argument, named `bins`, for the `fit` method.
 
-Here we will use the helper function `binning` to form Mondrian categories by equal-sized binning of the difficulty estimates; the function will return labels for the calibration objects as well as thresholds for the bins, which are later to be used when binning the test objects:
+Here we use the helper function `binning` to form Mondrian categories by equal-sized binning of the difficulty estimates; the function returns labels for the calibration objects the we provide as input to the calibration, and we also get thresholds for the bins, which can use later when binning the test objects:
 
 ```python
-bins_cal, bin_thresholds = binning(values=sigmas_cal, bins=20)
+bins_cal, bin_thresholds = binning(sigmas_cal, bins=20)
+rf.calibrate(residuals, bins=bins_cal)
 ```
 
-A Mondrian conformal regressor is obtained from the residuals and Mondrian category labels:
+Let us now get the labels of the Mondrian categories for the test objects and use them when predicting intervals:
 
 ```python
-cr_mond = ConformalRegressor()
-cr_mond.fit(residuals=residuals_cal, bins=bins_cal)
-```
-
-In order to use the Mondrian conformal regressor on the test objects, we need to get the labels of the Mondrian categories for these:
-
-```python
-bins_test = binning(values=sigmas_test, bins=bin_thresholds)
-```
-
-Now we have everything we need to get the prediction intervals:
-
-```python
-intervals_mond = cr_mond.predict(y_hat=y_hat_test, bins=bins_test, y_min=0)
+bins_test = binning(sigmas_test, bins=bin_thresholds)
+rf.predict_int(X_test, bins=bins_test, y_min=0)
 ```
 
 ```numpy
@@ -174,39 +155,24 @@ array([[ 206379.7 ,  575584.3 ],
        [ 140587.46,  531066.14]])
 ```
 
-### Conformal predictive systems
+We could very easily switch from conformal regressors to conformal predictive systems. The latter produce cumulative distribution functions (conformal predictive distributions). From these we can generate prediction intervals, but we can also obtain percentiles, calibrated point predictions, as well as p-values for given target values. Let us see how we can go ahead to do that.
 
-The interface to a `ConformalPredictiveSystem` is very similar to that of a conformal regressor; by providing just the residuals, we get a standard conformal predictive system, by providing also difficulty estimates, we get a normalized conformal predictive system and by providing labels for Mondrian categories (bins), we get a Mondrian conformal predictive system.
+Well, there is only one thing above that changes: just provide `cps=True` to the `calibrate` method.
 
-The main difference to conformal regressors concerns the output; instead of prediction intervals, conformal predictive systems produce complete cumulative distribution functions (conformal predictive distributions). From these we can generate prediction intervals, but we can also obtain percentiles, calibrated point predictions, as well as p-values for given target values.
-
-Let us fit a Mondrian normalized conformal predictive system, using the above residuals and difficulty estimates (sigmas), and where the Mondrian categories (bins) are formed using the point predictions for the calibration set:
+We can, for example, form normalized Mondrian conformal predictive systems, by providing both `bins` and `sigmas` to the `calibrate` method. Here we will consider Mondrian categories formed from binning the point predictions:
 
 ```python
-from crepes import ConformalPredictiveSystem
-
-bins_cal, bin_thresholds = binning(values=y_hat_cal, bins=5)
-
-cps_mond_norm = ConformalPredictiveSystem().fit(residuals=residuals_cal,
-                                                sigmas=sigmas_cal,
-                                                bins=bins_cal)
+bins_cal, bin_thresholds = binning(rf.predict(X_cal), bins=5)
+rf.calibrate(residuals, sigmas=sigmas_cal, bins=bins_cal, cps=True)
 ```
 
-We already have the point predictions and the difficulty estimates for the test objects, so we just need the category labels according to the new bin thresholds:
+By providing the bins (and sigmas) for the test objects, we can now make predictions with the conformal predictive system, through the method `predict_cps`.
+The output of this method can be controlled quite flexibly; here we request prediction intervals with 95% confidence to be output:
 
 ```python
-bins_test = binning(values=y_hat_test, bins=bin_thresholds)
-```
-
-We can now extract prediction intervals from the conformal predictive distributions for the test objects: 
-
-```python
-intervals = cps_mond_norm.predict(y_hat=y_hat_test,
-                                  sigmas=sigmas_test,
-                                  bins=bins_test,
-                                  lower_percentiles=2.5,
-                                  higher_percentiles=97.5,
-                                  y_min=0)
+bins_test = binning(rf.predict(X_test), bins=bin_thresholds)
+rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test,
+               lower_percentiles=2.5, higher_percentiles=97.5, y_min=0)
 ```
 
 ```numpy
@@ -219,34 +185,29 @@ array([[ 245826.3422693 ,  517315.83618985],
        [ 167498.01540504,  482328.98552632]])
 ```
 
-We can also get the p-values for the true target values; they should be uniformly distributed, if the test objects are drawn from the same underlying distribution as the calibration examples.
+If we would like to take a look at the p-values for the true targets (these should be uniformly distributed), we can do the following:
 
 ```python
-p_values = cps_mond_norm.predict(y_hat=y_hat_test,
-                                 sigmas=sigmas_test,
-                                 bins=bins_test,
-                                 y=y_test)
+rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test, y=y_test)
 ```
 
 ```numpy
-array([[0.98603614],
-       [0.87178256],
-       [0.44201984],
-       ...,
-       [0.05688804],
-       [0.09473604],
-       [0.31069913]])
+array([0.98603614, 0.87178256, 0.44201984, ..., 0.05688804, 0.09473604,
+       0.31069913])
 ```
 
-We may request that the predict method returns the full conformal predictive distribution (CPD) for each test instance, as defined by the threshold values, by setting `return_cpds=True`. The format of the distributions vary with the type of conformal predictive system; for a standard and normalized CPS, the output is an array with a row for each test instance and a column for each calibration instance (residual), while for a Mondrian CPS, the default output is a vector containing one CPD per test instance, since the number of values may vary between categories.
+We may request that the `predict_cps` method returns the full conformal predictive distribution (CPD) for each test instance, as defined by the threshold values, by setting `return_cpds=True`. The format of the distributions vary with the type of conformal predictive system; for a standard and normalized CPS, the output is an array with a row for each test instance and a column for each calibration instance (residual), while for a Mondrian CPS, the default output is a vector containing one CPD per test instance, since the number of values may vary between categories.
 
 ```python
-cpds = cps_mond_norm.predict(y_hat=y_hat_test,
-                             sigmas=sigmas_test,
-                             bins=bins_test,
-                             return_cpds=True)
+rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test, return_cpds=True)
 ```
 
 The resulting vector of arrays is not displayed here, but we instead provide a plot for the CPD of a random test instance:
 
 ![cpd](https://user-images.githubusercontent.com/7838741/235081969-328d7a23-26c9-4799-a246-8c35fd7ac88e.png)
+
+You are welcome to download and try out `crepes`; you may find the following notebooks helpful:
+
+[crepes using Wrap](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb)
+
+[crepes using ConformalRegressor and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb)
