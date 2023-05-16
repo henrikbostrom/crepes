@@ -11,7 +11,7 @@ Copyright 2023 Henrik Boström
 License: BSD 3 clause
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 import numpy as np
 import pandas as pd
@@ -35,7 +35,6 @@ class ConformalPredictor():
         self.time_predict = None
         self.time_evaluate = None
 
-        
 class ConformalRegressor(ConformalPredictor):
     """
     A conformal regressor transforms point predictions (regression 
@@ -463,13 +462,12 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         Returns
         -------
-
-        results : ndarray of shape (n_values, p_values+l_values+z_values)
-            where p_values = 1 if y is not None and 0 otherwise. A matrix
-            where the first column contains p-values, if p_values = 1,
-            the following l_values columns contain lower percentiles, and
-            the following h_values columns contain higher percentiles.
-            Only returned if p_values + l_values + z_values > 0.
+        results : ndarray of shape (n_values, n_cols) or (n_values,)
+            the shape is (n_values, n_cols) if n_cols > 1 and otherwise
+            (n_values,), where n_cols = p_values+l_values+h_values where 
+            p_values = 1 if y is not None and 0 otherwise, l_values are the
+            number of lower percentiles, and h_values are the number of higher
+            percentiles. Only returned if n_cols > 0.
         cpds : ndarray of (n_values, c_values), ndarray of (n_values,)
                or list of ndarrays
             conformal predictive distributions. Only returned if 
@@ -744,6 +742,8 @@ class ConformalPredictiveSystem(ConformalPredictor):
                            + len(higher_percentiles)]>y_max] = y_max
         toc = time.time()
         self.time_predict = toc-tic            
+        if no_result_columns > 0 and result.shape[1] == 1:
+            result = result[:,0]
         if no_result_columns > 0 and return_cpds:
             if not self.mondrian or cpds_by_bins:
                 cpds_out = cpds
@@ -818,9 +818,9 @@ class ConformalPredictiveSystem(ConformalPredictor):
         if metrics is None:
             metrics = ["error","eff_mean","eff_med","CRPS","time_fit",
                        "time_evaluate"]
-        lower_percentile = (1-confidence)/2*100
-        higher_percentile = (confidence+(1-confidence)/2)*100
-        test_results = {}
+            lower_percentile = (1-confidence)/2*100
+            higher_percentile = (confidence+(1-confidence)/2)*100
+            test_results = {}
         if "CRPS" in metrics:
             results, cpds = self.predict(y_hat, sigmas=sigmas, bins=bins, y=y,
                                          lower_percentiles=lower_percentile,
@@ -869,12 +869,12 @@ class ConformalPredictiveSystem(ConformalPredictor):
             test_results["CRPS"] = crps
         if "time_fit" in metrics:
             test_results["time_fit"] = self.time_fit
-        toc = time.time()
-        self.time_evaluate = toc-tic
+            toc = time.time()
+            self.time_evaluate = toc-tic
         if "time_evaluate" in metrics:
             test_results["time_evaluate"] = self.time_evaluate
         return test_results
-        
+    
 def calculate_crps(cpds, alphas, sigmas, y):
     """
     Calculate mean continuous-ranked probability score (crps)
@@ -906,7 +906,7 @@ def calculate_crps(cpds, alphas, sigmas, y):
     return np.mean([get_crps(cpd_indexes[i], lower_errors, higher_errors,
                              widths, sigmas[i], cpds[i], y[i])
                     for i in range(len(y))])
-        
+
 def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
     """
     Calculate continuous-ranked probability score (crps) for a single
@@ -945,3 +945,490 @@ def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
             lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma +\
             higher_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
     return score
+
+class Wrap():
+    """
+    A learner wrapped with a :class:`.ConformalRegressor`
+    or :class:`.ConformalPredictiveSystem`.
+    """
+    
+    def __init__(self, learner):
+        self.cr = None
+        self.cps = None
+        self.calibrated = False
+        self.learner = learner
+
+    def __repr__(self):
+        if self.calibrated:
+            if self.cr is not None:
+                return (f"Wrap(learner={self.learner}, "
+                        f"calibrated={self.calibrated}, "
+                        f"predictor={self.cr})")
+            else:
+                return (f"Wrap(learner={self.learner}, "
+                        f"calibrated={self.calibrated}, "
+                        f"predictor={self.cps})")                
+        else:
+            return f"Wrap(learner={self.learner}, calibrated={self.calibrated})"
+        
+    def fit(self, X, y, **kwargs):
+        """
+        Fit learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        y : array-like of shape (n_samples,),
+            target values
+        kwargs : optional arguments
+           any additional arguments are forwarded to the
+           ``fit`` method of the ``learner`` object
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        Assuming ``X_train`` and ``y_train`` to be an array and vector 
+        with training objects and labels, respectively, a random
+        forest may be wrapped and fitted by:
+
+        .. code-block:: python
+
+           from sklearn.ensemble import RandomForestRegressor
+           from crepes import Wrap
+
+           rf = Wrap(RandomForestRegressor())
+           rf.fit(X_train, y_train)
+           
+        Note
+        ----
+        The learner, which can be accessed by ``rf.learner``, may be fitted 
+        before as well as after being wrapped.
+
+        Note
+        ----
+        All arguments, including any additional keyword arguments, to 
+        :meth:`.fit` are forwarded to the ``fit`` method of the learner.        
+        """
+        self.learner.fit(X, y, **kwargs)
+    
+        
+    def predict(self, X):
+        """
+        Predict with learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+
+        Returns
+        -------
+        y : array-like of shape (n_samples,),
+            values predicted using the ``predict`` 
+            method of the ``learner`` object.
+
+        Examples
+        --------
+        Assuming ``w`` is a :class:`.Wrap` object for which the wrapped
+        learner ``w.learner`` has been fitted, (point) 
+        predictions of the learner can be obtained for a set
+        of test objects ``X_test`` by:
+
+        .. code-block:: python
+
+           y_hat = w.predict(X_test)
+           
+        The above is equivalent to:
+
+        .. code-block:: python
+
+           y_hat = w.learner.predict(X_test)
+        """
+        return self.learner.predict(X)
+
+    def calibrate(self, residuals=None, sigmas=None, bins=None, cps=False):
+        """
+        Fit a :class:`.ConformalRegressor` or 
+        :class:`.ConformalPredictiveSystem` using learner.
+
+        Parameters
+        ----------
+        residuals : array-like of shape (n_samples,), default=None
+            actual values - predicted values
+        sigmas: array-like of shape (n_samples,), default=None
+            difficulty estimates
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        cps : bool, default=False
+            if cps=false, the method fits a :class:`.ConformalRegressor`
+            and otherwise, a :class:`.ConformalPredictiveSystem`
+
+        Returns
+        -------
+        self : object
+            Wrap object updated with a fitted :class:`.ConformalRegressor` or 
+            :class:`.ConformalPredictiveSystem`
+
+        Examples
+        --------
+        Assuming ``X_cal`` and ``y_cal`` to be an array and vector, 
+        respectively, with objects and labels for the calibration set,
+        and ``w`` is a :class:`.Wrap` object for which the learner 
+        has been fitted, a standard conformal regressor
+        can be formed from the residuals:
+
+        .. code-block:: python
+
+           residuals_cal = y_cal - w.predict(X_cal)
+
+           w.calibrate(residuals_cal) 
+
+        Assuming that ``sigmas_cal`` is a vector with difficulty estimates,
+        a normalized conformal regressor can be obtained by: 
+
+        .. code-block:: python
+
+           w.calibrate(residuals_cal, sigmas=sigmas_cal)
+
+        Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
+        labels), a Mondrian conformal regressor can be obtained by:
+
+        .. code-block:: python
+
+           w.calibrate(residuals_cal, bins=bins_cal)
+
+        A normalized Mondrian conformal regressor can be generated in the
+        following way:
+
+        .. code-block:: python
+
+           w.calibrate(residuals_cal, sigmas=sigmas_cal, bins=bins_cal)
+
+        By providing the option ``cps=True``, each of the above calls will instead 
+        generate a :class:`.ConformalPredictiveSystem`, e.g.,
+
+        .. code-block:: python
+
+           w.calibrate(residuals_cal, sigmas=sigmas_cal, cps=True)
+        """
+        if not cps:
+            self.cr = ConformalRegressor()
+            self.cr.fit(residuals=residuals, sigmas=sigmas, bins=bins)
+            self.cps = None
+        else:
+            self.cps = ConformalPredictiveSystem()
+            self.cps.fit(residuals=residuals, sigmas=sigmas, bins=bins)
+            self.cr = None
+        self.calibrated = True
+        return self
+
+    def predict_int(self, X, sigmas=None, bins=None, confidence=0.95,
+                    y_min=-np.inf, y_max=np.inf):
+        """
+        Predict interval using fitted :class:`.ConformalRegressor` or
+        :class:`.ConformalPredictiveSystem`.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        sigmas : array-like of shape (n_samples,), default=None
+            difficulty estimates
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        y_min : float or int, default=-numpy.inf
+            minimum value to include in prediction intervals
+        y_max : float or int, default=numpy.inf
+            maximum value to include in prediction intervals
+
+        Returns
+        -------
+        intervals : ndarray of shape (n_samples, 2)
+            prediction intervals
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects and ``w`` is a 
+        :class:`.Wrap` object that has been calibrated, i.e., :meth:`.calibrate`
+        has been applied, prediction intervals at the 99% confidence level can 
+        be obtained by:
+
+        .. code-block:: python
+
+           intervals = w.predict_int(X_test, confidence=0.99)
+
+        Assuming that ``sigmas_test`` is a vector with difficulty estimates for
+        the test set and ``w`` is a :class:`.Wrap` object that has been 
+        calibrated with both residuals and difficulty estimates, prediction
+        intervals at the default (95%) confidence level can be obtained by:
+
+        .. code-block:: python
+
+           intervals = w.predict_int(X_test, sigmas=sigmas_test)
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``w`` is a :class:`.Wrap` object that has 
+        been calibrated with both residuals and bins, the following provides 
+        prediction intervals at the default confidence level, where the 
+        intervals are lower-bounded by 0:
+
+        .. code-block:: python
+
+           intervals = w.predict_int(X_test, bins=bins_test, y_min=0)
+
+        Note
+        ----
+        In case the specified confidence level is too high in relation to the 
+        size of the calibration set, a warning will be issued and the output
+        intervals will be of maximum size.
+
+        Note
+        ----
+        Note that ``sigmas`` and ``bins`` will be ignored by 
+        :meth:`.predict_int`, if the :class:`.Wrap` object has been calibrated 
+        without specifying any such values.
+
+        Note
+        ----
+        Note that an error will be reported if ``sigmas`` and ``bins`` are not
+        provided to :meth:`.predict_int`, if the :class:`.Wrap` object has
+        been calibrated with such values.
+        """
+        if not self.calibrated:
+            raise RuntimeError(("predict_int requires that calibrate has been"
+                                "called first"))
+        else:
+            y_hat = self.learner.predict(X)
+            if self.cr is not None:
+                return self.cr.predict(y_hat=y_hat, sigmas=sigmas, bins=bins,
+                                       confidence=confidence,
+                                       y_min=y_min, y_max=y_max)
+            else:
+                lower_percentile = (1-confidence)/2*100
+                higher_percentile = (confidence+(1-confidence)/2)*100
+                return self.cps.predict(y_hat, sigmas=sigmas, bins=bins,
+                                        lower_percentiles=lower_percentile,
+                                        higher_percentiles=higher_percentile,
+                                        y_min=y_min, y_max=y_max)
+
+    def predict_cps(self, X, sigmas=None, bins=None, y=None, lower_percentiles=None,
+                    higher_percentiles=None, y_min=-np.inf, y_max=np.inf,
+                    return_cpds=False, cpds_by_bins=False):
+        """
+        Predict using :class:`.ConformalPredictiveSystem`.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        sigmas : array-like of shape (n_samples,), default=None
+            difficulty estimates
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        y : float, int or array-like of shape (n_samples,), default=None
+            values for which p-values should be returned
+        lower_percentiles : array-like of shape (l_values,), default=None
+            percentiles for which a lower value will be output 
+            in case a percentile lies between two values
+            (similar to `interpolation="lower"` in `numpy.percentile`)
+        higher_percentiles : array-like of shape (h_values,), default=None
+            percentiles for which a higher value will be output 
+            in case a percentile lies between two values
+            (similar to `interpolation="higher"` in `numpy.percentile`)
+        y_min : float or int, default=-numpy.inf
+            The minimum value to include in prediction intervals.
+        y_max : float or int, default=numpy.inf
+            The maximum value to include in prediction intervals.
+        return_cpds : Boolean, default=False
+            specifies whether conformal predictive distributions (cpds)
+            should be output or not
+        cpds_by_bins : Boolean, default=False
+            specifies whether the output cpds should be grouped by bin or not; 
+            only applicable when bins is not None and return_cpds = True
+
+        Returns
+        -------
+        results : ndarray of shape (n_samples, n_cols) or (n_samples,)
+            the shape is (n_samples, n_cols) if n_cols > 1 and otherwise
+            (n_samples,), where n_cols = p_values+l_values+h_values where 
+            p_values = 1 if y is not None and 0 otherwise, l_values are the
+            number of lower percentiles, and h_values are the number of higher
+            percentiles. Only returned if n_cols > 0.
+        cpds : ndarray of (n_samples, c_values), ndarray of (n_samples,)
+               or list of ndarrays
+            conformal predictive distributions. Only returned if 
+            return_cpds == True. If bins is None, the distributions are
+            represented by a single array, where the number of columns
+            (c_values) is determined by the number of residuals of the fitted
+            conformal predictive system. Otherwise, the distributions
+            are represented by a vector of arrays, if cpds_by_bins = False,
+            or a list of arrays, with one element for each bin, if 
+            cpds_by_bins = True.
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
+        vector with true targets, ``w`` is a :class:`.Wrap` object calibrated
+        with the option ``cps=True``, p-values for the true targets 
+        can be obtained by:
+
+        .. code-block:: python
+
+           p_values = w.predict_cps(X_test, y=y_test)
+
+        P-values with respect to some specific value, e.g., 37, can be
+        obtained by:
+
+        .. code-block:: python
+
+           p_values = w.predict_cps(X_test, y=37)
+
+        Assuming that ``sigmas_test`` is a vector with difficulty estimates for
+        the test set and ``w`` has been calibrated with such estimates, 
+        the 90th and 95th percentiles can be obtained by:
+
+        .. code-block:: python
+
+           percentiles = w.predict_cps(X_test, sigmas=sigmas_test,
+                                       higher_percentiles=[90,95])
+
+        In the above example, the nearest higher value is returned, if there is
+        no value that corresponds exactly to the requested percentile. If we
+        instead would like to retrieve the nearest lower value, we should 
+        write:
+
+        .. code-block:: python
+
+           percentiles = w.predict_cps(X_test, sigmas=sigmas_test,
+                                       lower_percentiles=[90,95])
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``w`` has been calibrated with bins,
+        the following returns prediction intervals at the 95% confidence level,
+        where the intervals are lower-bounded by 0:
+
+        .. code-block:: python
+
+           intervals = w.predict_cps(X_test, bins=bins_test,
+                                     lower_percentiles=2.5,
+                                     higher_percentiles=97.5,
+                                     y_min=0)
+
+        If we would like to obtain the conformal distributions, we could write
+        the following:
+
+        .. code-block:: python
+
+           cpds = w.predict_cps(X_test, sigmas=sigmas_test, return_cpds=True)
+
+        The output of the above will be an array with a row for each test
+        instance and a column for each calibration instance (residual).
+        If the learner is wrapped with a Mondrian conformal predictive system, 
+        the above will instead result in a vector, in which each element is a
+        vector, as the number of calibration instances may vary between 
+        categories. If we instead would like an array for each category, this 
+        can be obtained by:
+
+        .. code-block:: python
+
+           cpds = w.predict_cps(X_test, sigmas=sigmas_test, return_cpds=True, 
+                                cpds_by_bins=True)
+
+        Note
+        ----
+        This method is available only if the learner has been wrapped with a
+        :class:`.ConformalPredictiveSystem`, i.e., :meth:`.calibrate`
+        has been called with the option ``cps=True``.
+        """
+        if self.cps is None:
+            raise RuntimeError(("predict_cps requires that calibrate has been"
+                                "called first with cps=True"))
+        else:
+            y_hat = self.learner.predict(X)
+            return self.cps.predict(y_hat=y_hat, sigmas=sigmas, bins=bins,
+                                    y=y, lower_percentiles=lower_percentiles,
+                                    higher_percentiles=higher_percentiles,
+                                    y_min=y_min, y_max=y_max,
+                                    return_cpds=return_cpds,
+                                    cpds_by_bins=cpds_by_bins)
+
+    def evaluate(self, X, y=None, sigmas=None, bins=None, confidence=0.95,
+                 y_min=-np.inf, y_max=np.inf, metrics=None):
+        """
+        Evaluate :class:`.ConformalRegressor` or 
+        :class:`.ConformalPredictiveSystem`.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        y : array-like of shape (n_samples,), default=None,
+            correct target values
+        sigmas : array-like of shape (n_samples,), default=None,
+            difficulty estimates
+        bins : array-like of shape (n_samples,), default=None,
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        y_min : float or int, default=-numpy.inf
+            minimum value to include in prediction intervals
+        y_max : float or int, default=numpy.inf
+            maximum value to include in prediction intervals
+        metrics : a string or a list of strings, default=list of all 
+            metrics; for a learner wrapped with a conformal regressor
+            these are "error", "eff_mean","eff_med", "time_fit", and
+            "time_evaluate", while if wrapped with a conformal predictive
+            system, the metrics also include "CRPS". 
+        
+        Returns
+        -------
+        results : dictionary with a key for each selected metric 
+            estimated performance using the metrics     
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
+        vector with true targets, ``sigmas_test`` and ``bins_test`` are
+        vectors with difficulty estimates and Mondrian categories (bin labels) 
+        for the test set, and ``w`` is a calibrated :class:`.Wrap` object, 
+        then the latter can be evaluated at the 90% confidence level 
+        with respect to error, mean and median efficiency (interval size) by:
+
+        .. code-block:: python
+
+           results = w.evaluate(X_test, y=y_test, sigmas=sigmas_test, 
+                                bins=bins_test, confidence=0.9,
+                                metrics=["error", "eff_mean", "eff_med"])
+
+        Note
+        ----
+        If included in the list of metrics, "CRPS" (continuous-ranked
+        probability score) will be ignored if the :class:`.Wrap` object has been
+        calibrated with the (default) option ``cps=False``, i.e., the learner is
+        wrapped with a :class:`.ConformalRegressor`.
+
+        Note
+        ----
+        The reported result for ``time_fit`` only considers fitting the
+        conformal regressor or predictive system; not for fitting the
+        learner.
+        """
+        if not self.calibrated:
+            raise RuntimeError(("evaluate requires that calibrate has been"
+                                "called first"))
+        else:
+            y_hat = self.learner.predict(X)
+            if self.cr is not None:
+                return self.cr.evaluate(y_hat=y_hat, y=y, sigmas=sigmas,
+                                        bins=bins, confidence=confidence,
+                                        y_min=y_min, y_max=y_max)
+            else:
+                return self.cps.evaluate(y_hat=y_hat, y=y, sigmas=sigmas,
+                                         bins=bins, confidence=confidence,
+                                         y_min=y_min, y_max=y_max)
