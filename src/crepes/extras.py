@@ -83,7 +83,7 @@ class DifficultyEstimator():
         
         .. code-block:: python
 
-           from crepes.fillings import DifficultyEstimator
+           from crepes.extras import DifficultyEstimator
 
            de_knn_dist = DifficultyEstimator() 
            de_knn_dist.fit(X_prop_train)
@@ -350,13 +350,13 @@ def get_oob(seed, n_samples):
                                                            n_samples),
                        minlength=n_samples) == 0
 
-def binning(values=None, bins=10):
+def binning(values, bins=10):
     """
     Provides bins for a set of values.
 
     Parameters
     ----------
-    values : array-like of shape (n_samples,), default=None
+    values : array-like of shape (n_samples,)
         set of values
     bins : int or array-like of shape (n_bins,), default=10
         number of bins to use for equal-sized binning or threshold values 
@@ -378,9 +378,9 @@ def binning(values=None, bins=10):
 
     .. code-block:: python
 
-       from crepes.fillings import binning
+       from crepes.extras import binning
         
-       bins, bin_thresholds = binning(values=sigmas, bins=20)
+       bins, bin_thresholds = binning(sigmas, bins=20)
 
     The above will result in that ``bins`` is assigned a vector
     of the same length as ``sigmas`` with label names (integers
@@ -391,7 +391,7 @@ def binning(values=None, bins=10):
 
     .. code-block:: python
         
-       test_bins  = binning(values=sigmas_test, bins=bin_thresholds)
+       test_bins  = binning(sigmas_test, bins=bin_thresholds)
 
     Here the output is just a vector ``test_bins`` with label names
     of the same length as ``sigmas_test``.

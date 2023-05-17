@@ -1050,14 +1050,14 @@ class Wrap():
         """
         return self.learner.predict(X)
 
-    def calibrate(self, residuals=None, sigmas=None, bins=None, cps=False):
+    def calibrate(self, residuals, sigmas=None, bins=None, cps=False):
         """
         Fit a :class:`.ConformalRegressor` or 
         :class:`.ConformalPredictiveSystem` using learner.
 
         Parameters
         ----------
-        residuals : array-like of shape (n_samples,), default=None
+        residuals : array-like of shape (n_samples,)
             actual values - predicted values
         sigmas: array-like of shape (n_samples,), default=None
             difficulty estimates
