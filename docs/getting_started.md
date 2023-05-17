@@ -16,42 +16,36 @@ conda install -c conda-forge crepes
 
 ## Quickstart
 
-We first import the class `Wrap` from `crepes` and a helper class and function from `crepes.extras`:
-
-```python
-from crepes import Wrap
-from crepes.extras import DifficultyEstimator, binning
-```
-
-Let us also import some additional functions and a class to illustrate the above using a dataset from [www.openml.org](https://www.openml.org) and a `RandomForestRegressor` from [sklearn](https://scikit-learn.org):
+Let us illustrate the use of `crepes` by importing a dataset from [www.openml.org](https://www.openml.org),
+which we split into a training and a test set using `train_test_split` from [sklearn](https://scikit-learn.org),
+and then further split the training set into a proper training set and a calibration set:
 
 ```python
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-```
 
-We will now import and split the dataset into a training and a test set, and then further split the training set into a proper training set and a calibration set:
-
-```python
 dataset = fetch_openml(name="house_sales", version=3)
 X = dataset.data.values.astype(float)
 y = dataset.target.values.astype(float)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-
 X_prop_train, X_cal, y_prop_train, y_cal = train_test_split(X_train, y_train,
                                                             test_size=0.25)
 ```
 
-Let us now "wrap" a random forest regressor and fit it (in the usual way) to the proper training set:
+Let us now "wrap" a `RandomForestRegressor` from [sklearn](https://scikit-learn.org) using the class `Wrap` from `crepes`
+and fit it (in the usual way) to the proper training set:
 
 ```python
+from sklearn.ensemble import RandomForestRegressor
+from crepes import Wrap
+
 rf = Wrap(RandomForestRegressor())
 rf.fit(X_prop_train, y_prop_train)
 ```
 
-We can use the fitted model to obtain point predictions (again, in the usual way) for the calibration objects, from which we can calculate the residuals. These residuals are exactly what we need to "calibrate" the learner: 
+We can use the fitted model to obtain point predictions (again, in the usual way) for the calibration objects, from which we can calculate the residuals.
+These residuals are exactly what we need to "calibrate" the learner: 
 
 ```python
 residuals = y_cal - rf.predict(X_cal)
@@ -94,11 +88,13 @@ array([[ 152258.55,  629705.45],
 
 The above intervals are not normalized, i.e., they are all of the same size (at least before they are cut). We could make them more informative through normalization using difficulty estimates; objects considered more difficult will be assigned wider intervals.
 
-We will use a `DifficultyEstimator` for this purpose. Here it estimates the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each object in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
+We will use a `DifficultyEstimator` from the `crepes.extras` module for this purpose. Here we estimate the difficulty by the standard deviation of the target of the k (default `k=25`) nearest neighbors in the proper training set to each object in the calibration set. A small value (beta) is added to the estimates, which may be given through an argument to the function; below we just use the default, i.e., `beta=0.01`.
 
 We first obtain the difficulty estimates for the calibration set:
 
 ```python
+from crepes.extras import DifficultyEstimator
+
 de = DifficultyEstimator()
 de.fit(X_prop_train, y=y_prop_train)
 
@@ -131,9 +127,11 @@ Depending on the employed difficulty estimator, the normalized intervals may som
 
 A Mondrian conformal regressor can be used to address these problems, by dividing the object space into non-overlapping so-called Mondrian categories, and forming a (standard) conformal regressor for each category. The category membership of the objects can be provided as an additional argument, named `bins`, for the `fit` method.
 
-Here we use the helper function `binning` to form Mondrian categories by equal-sized binning of the difficulty estimates; the function returns labels for the calibration objects the we provide as input to the calibration, and we also get thresholds for the bins, which can use later when binning the test objects:
+Here we use the helper function `binning` from `crepes.extras` to form Mondrian categories by equal-sized binning of the difficulty estimates; the function returns labels for the calibration objects the we provide as input to the calibration, and we also get thresholds for the bins, which can use later when binning the test objects:
 
 ```python
+from crepes.extras import binning
+
 bins_cal, bin_thresholds = binning(sigmas_cal, bins=20)
 rf.calibrate(residuals, bins=bins_cal)
 ```
