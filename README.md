@@ -229,7 +229,7 @@ For additional examples of how to use the package and module, including how to u
 
 ## Citing crepes
 
-If you use `crepes` for a scientific publication, you may cite the following paper:
+If you use `crepes` for a scientific publication, you are kindly requested to cite the following paper:
 
 Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179. [Link](https://copa-conference.com/papers/COPA2022_paper_11.pdf)
 
