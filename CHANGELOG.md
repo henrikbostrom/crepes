@@ -1,5 +1,21 @@
 # Changelog
 	
+## v0.5.0 (02/06/2023)
+
+### Feature
+
+- The full cpds matrix is calculated only if requested to be output (``return_cpds=True``) by the ``predict`` method of ``ConformalPredictiveSystem`` or if the set of metrics include "CRPS" for the ``evaluate`` method. This allows large test and calibration sets to be handled without excessive use of memory in other cases. Thanks to @christopherjluke and @SebastianLeborg for highlighting and discussing the problem.
+
+### Fixes
+
+- Default values for mandatory arguments for the methods ``fit``, ``predict`` and ``evaluate`` methods of ``ConformalRegressor`` and ``ConformalPredictiveSystem``, as well as the function ``binning`` in ``crepes.extras``, are no longer provided
+
+- ``y_min`` and ``y_max`` correctly inserted for all percentiles
+
+- The ``evaluate`` method for ``ConformalPredictiveSystem`` fixed to work correctly even if CRPS not included in metrics, and if all test objects belong to the same Mondrian category
+	
+- Incorrect values for percentiles will render an error message
+	
 ## v0.4.0 (16/05/2023)
 
 ### Feature
