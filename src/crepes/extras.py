@@ -133,15 +133,16 @@ class DifficultyEstimator():
            de_var = DifficultyEstimator() 
            de_var.fit(X_proper_train, learner=learner_prop, scaler=True)
 
-        The :class:`.DifficultyEstimator` can also support the construction of conformal
-        regressors and predictive systems that employ out-of-bag calibration. 
-        For the k-nearest neighbor approaches, the difficulty of each object 
-        in the provided training set will be computed using a leave-one-out 
-        procedure, while for the variance-based approach the out-of-bag predictions 
-        will be employed. This is enabled by setting ``oob=True`` when calling the 
-        :meth:`.fit` method, which also requires the (full) 
-        training set (``X_train``), and for the variance-based approach a corresponding 
-        trained model (``learner_full``) to be provided: 
+        The :class:`.DifficultyEstimator` can also support the construction of 
+        conformal regressors and predictive systems that employ out-of-bag 
+        calibration. For the k-nearest neighbor approaches, the difficulty of
+        each object in the provided training set will be computed using a 
+        leave-one-out procedure, while for the variance-based approach the 
+        out-of-bag predictions will be employed. This is enabled by setting 
+        ``oob=True`` when calling the :meth:`.fit` method, which also requires 
+        the (full) training set (``X_train``), and for the variance-based 
+        approach a corresponding trained model (``learner_full``) to be 
+        provided: 
 
         .. code-block:: python
 
@@ -150,7 +151,7 @@ class DifficultyEstimator():
 
         A small value (beta) is added to the difficulty estimates. The default 
         is ``beta=0.01``. In order to make the beta value have the same effect 
-        across different estimators, you may consider normalizing the difficulty 
+        across different estimators, you may consider normalizing the difficulty
         estimates (using min-max scaling) by setting ``scaler=True``. Note that 
         beta is added after the normalization, which means that the range of
         scores after normalization will be [0+beta, 1+beta]. Below, we use 
@@ -276,9 +277,10 @@ class DifficultyEstimator():
         
            difficulty_estimates = de.apply(X)
 
-        If ``de_oob`` is a :class:`.DifficultyEstimator` that has been fitted with
-        the option ``oob=True`` and a training set, then a call to :meth:`.apply` 
-        without any objects will return the estimates for the training set:
+        If ``de_oob`` is a :class:`.DifficultyEstimator` that has been fitted 
+        with the option ``oob=True`` and a training set, then a call to 
+        :meth:`.apply` without any objects will return the estimates for the 
+        training set:
 
         .. code-block:: python
         

@@ -11,7 +11,7 @@ Copyright 2023 Henrik Boström
 License: BSD 3 clause
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 import numpy as np
 import pandas as pd
@@ -49,13 +49,13 @@ class ConformalRegressor(ConformalPredictor):
         else:
             return f"ConformalRegressor(fitted={self.fitted})"
     
-    def fit(self, residuals=None, sigmas=None, bins=None):
+    def fit(self, residuals, sigmas=None, bins=None):
         """
         Fit conformal regressor.
 
         Parameters
         ----------
-        residuals : array-like of shape (n_values,), default=None
+        residuals : array-like of shape (n_values,)
             true values - predicted values
         sigmas: array-like of shape (n_values,), default=None
             difficulty estimates
@@ -90,7 +90,7 @@ class ConformalRegressor(ConformalPredictor):
         .. code-block:: python
 
            cr_norm = ConformalRegressor()
-           cr_norm.fit(residuals=residuals_cal, sigmas=sigmas_cal)
+           cr_norm.fit(residuals_cal, sigmas=sigmas_cal)
 
         Assuming that ``bins_cals`` is a vector with Mondrian categories 
         (bin labels), then a Mondrian conformal regressor can be fitted in the
@@ -99,7 +99,7 @@ class ConformalRegressor(ConformalPredictor):
         .. code-block:: python
 
            cr_mond = ConformalRegressor()
-           cr_mond.fit(residuals=residuals_cal, bins=bins_cal)
+           cr_mond.fit(residuals_cal, bins=bins_cal)
 
         A normalized Mondrian conformal regressor can be fitted in the 
         following way:
@@ -107,7 +107,7 @@ class ConformalRegressor(ConformalPredictor):
         .. code-block:: python
 
            cr_norm_mond = ConformalRegressor()
-           cr_norm_mond.fit(residuals=residuals_cal, sigmas=sigmas_cal, 
+           cr_norm_mond.fit(residuals_cal, sigmas=sigmas_cal, 
                             bins=bins_cal)
         """
         tic = time.time()
@@ -137,14 +137,14 @@ class ConformalRegressor(ConformalPredictor):
         self.time_fit = toc-tic
         return self
 
-    def predict(self, y_hat=None, sigmas=None, bins=None, confidence=0.95,
+    def predict(self, y_hat, sigmas=None, bins=None, confidence=0.95,
                 y_min=-np.inf, y_max=np.inf):
         """
         Predict using conformal regressor.
 
         Parameters
         ----------
-        y_hat : array-like of shape (n_values,), default=None
+        y_hat : array-like of shape (n_values,)
             predicted values
         sigmas : array-like of shape (n_values,), default=None
             difficulty estimates
@@ -170,7 +170,7 @@ class ConformalRegressor(ConformalPredictor):
 
         .. code-block:: python
 
-           intervals = cr_std.predict(y_hat=y_hat_test, confidence=0.99)
+           intervals = cr_std.predict(y_hat_test, confidence=0.99)
 
         Assuming that ``sigmas_test`` is a vector with difficulty estimates for
         the test set and ``cr_norm`` a fitted normalized conformal regressor, 
@@ -179,7 +179,7 @@ class ConformalRegressor(ConformalPredictor):
 
         .. code-block:: python
 
-           intervals = cr_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test)
+           intervals = cr_norm.predict(y_hat_test, sigmas=sigmas_test)
 
         Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
         labels) for the test set and ``cr_mond`` a fitted Mondrian conformal 
@@ -188,7 +188,7 @@ class ConformalRegressor(ConformalPredictor):
 
         .. code-block:: python
 
-           intervals = cr_mond.predict(y_hat=y_hat_test, bins=bins_test, 
+           intervals = cr_mond.predict(y_hat_test, bins=bins_test, 
                                        y_min=0)
 
         Note
@@ -258,15 +258,17 @@ class ConformalRegressor(ConformalPredictor):
         self.time_predict = toc-tic            
         return intervals
 
-    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None,
+    def evaluate(self, y_hat, y, sigmas=None, bins=None,
                  confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
         """
         Evaluate conformal regressor.
 
         Parameters
         ----------
-        y_hat : array-like of shape (n_values,), default=None
+        y_hat : array-like of shape (n_values,)
             predicted values
+        y : array-like of shape (n_values,)
+            correct target values
         sigmas : array-like of shape (n_values,), default=None
             difficulty estimates
         bins : array-like of shape (n_values,), default=None
@@ -298,7 +300,7 @@ class ConformalRegressor(ConformalPredictor):
 
         .. code-block:: python
 
-           results = cr_norm_mond.evaluate(y_hat=y_hat_test, y=y_test, 
+           results = cr_norm_mond.evaluate(y_hat_test, y_test, 
                                            sigmas=sigmas_test, bins=bins_test,
                                            metrics=["error", "eff_mean"])
         """
@@ -337,13 +339,13 @@ class ConformalPredictiveSystem(ConformalPredictor):
         else:
             return f"ConformalPredictiveSystem(fitted={self.fitted})"
 
-    def fit(self, residuals=None, sigmas=None, bins=None):
+    def fit(self, residuals, sigmas=None, bins=None):
         """
         Fit conformal predictive system.
 
         Parameters
         ----------
-        residuals : array-like of shape (n_values,), default=None
+        residuals : array-like of shape (n_values,)
             actual values - predicted values
         sigmas: array-like of shape (n_values,), default=None
             difficulty estimates
@@ -378,7 +380,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
         .. code-block:: python
 
            cps_norm = ConformalPredictiveSystem()
-           cps_norm.fit(residuals=residuals_cal, sigmas=sigmas_cal)
+           cps_norm.fit(residuals_cal, sigmas=sigmas_cal)
 
         Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
         labels), then a Mondrian conformal predictive system can be fitted in
@@ -387,7 +389,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
         .. code-block:: python
 
            cps_mond = ConformalPredictiveSystem()
-           cps_mond.fit(residuals=residuals_cal, bins=bins_cal)
+           cps_mond.fit(residuals_cal, bins=bins_cal)
 
         A normalized Mondrian conformal predictive system can be fitted in the
         following way:
@@ -395,7 +397,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
         .. code-block:: python
 
            cps_norm_mond = ConformalPredictiveSystem()
-           cps_norm_mond.fit(residuals=residuals_cal, sigmas=sigmas_cal, 
+           cps_norm_mond.fit(residuals_cal, sigmas=sigmas_cal, 
                              bins=bins_cal)
         """
 
@@ -424,7 +426,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
         self.time_fit = toc-tic
         return self
         
-    def predict(self, y_hat=None, sigmas=None, bins=None,
+    def predict(self, y_hat, sigmas=None, bins=None,
                 y=None, lower_percentiles=None, higher_percentiles=None,
                 y_min=-np.inf, y_max=np.inf, return_cpds=False,
                 cpds_by_bins=False):    
@@ -433,7 +435,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         Parameters
         ----------
-        y_hat : array-like of shape (n_values,), default=None
+        y_hat : array-like of shape (n_values,)
             predicted values
         sigmas : array-like of shape (n_values,), default=None
             difficulty estimates
@@ -488,14 +490,14 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           p_values = cps_std.predict(y_hat=y_hat_test, y=y_test)
+           p_values = cps_std.predict(y_hat_test, y=y_test)
 
         The p-values with respect to some specific value, e.g., 37, can be
         obtained by:
 
         .. code-block:: python
 
-           p_values = cps_std.predict(y_hat=y_hat_test, y=37)
+           p_values = cps_std.predict(y_hat_test, y=37)
 
         Assuming that ``sigmas_test`` is a vector with difficulty estimates for
         the test set and ``cps_norm`` a fitted normalized conformal predictive 
@@ -503,7 +505,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           percentiles = cps_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test,
+           percentiles = cps_norm.predict(y_hat_test, sigmas=sigmas_test,
                                           higher_percentiles=[90,95])
 
         In the above example, the nearest higher value is returned, if there is
@@ -513,7 +515,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           percentiles = cps_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test,
+           percentiles = cps_norm.predict(y_hat_test, sigmas=sigmas_test,
                                           lower_percentiles=[90,95])
 
         Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
@@ -523,7 +525,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           intervals = cps_mond.predict(y_hat=y_hat_test, bins=bins_test,
+           intervals = cps_mond.predict(y_hat_test, bins=bins_test,
                                         lower_percentiles=2.5,
                                         higher_percentiles=97.5,
                                         y_min=0)
@@ -533,7 +535,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           cpds = cps_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test,
+           cpds = cps_norm.predict(y_hat_test, sigmas=sigmas_test,
                                    return_cpds=True)
 
         The output of the above will be an array with a row for each test
@@ -545,40 +547,32 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           cpds = cps_norm.predict(y_hat=y_hat_test, sigmas=sigmas_test,
+           cpds = cps_norm.predict(y_hat_test, sigmas=sigmas_test,
                                    return_cpds=True, cpds_by_bins=True)
-
-        Note
-        ----
-        Setting ``cpds_by_bins`` has an effect only for Mondrian conformal 
-        predictive systems.
 
         Note
         ----
         In case the calibration set is too small for the specified lower and
         higher percentiles, a warning will be issued and the output will be 
         ``y_min`` and ``y_max``, respectively.
+
+        Note
+        ----
+        Setting ``return_cpds=True`` may consume a lot of memory, as a matrix is
+        generated for which the number of elements is the product of the number 
+        of calibration and test objects, unless a Mondrian approach is employed; 
+        for the latter, this number is reduced by increasing the number of bins.
+
+        Note
+        ----
+        Setting ``cpds_by_bins=True`` has an effect only for Mondrian conformal 
+        predictive systems.
         """
 
         tic = time.time()
-        if not self.mondrian:
-                if self.normalized:
-                    cpds = np.array([y_hat[i]+sigmas[i]*self.alphas
-                                     for i in range(len(y_hat))])
-                else:
-                    cpds = np.array([y_hat[i]+self.alphas
-                                     for i in range(len(y_hat))])
-        else:           
+        if self.mondrian:
             bin_values, bin_alphas = self.alphas
             bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
-            if self.normalized:
-                cpds = [np.array([y_hat[i]+sigmas[i]*bin_alphas[b]
-                                  for i in bin_indexes[b]])
-                        for b in range(len(bin_values))]
-            else:
-                cpds = [np.array([y_hat[i]+bin_alphas[b] for
-                                  i in bin_indexes[b]])
-                        for b in range(len(bin_values))]
         no_prec_result_cols = 0
         if isinstance(lower_percentiles, (int, float, np.integer, np.floating)):
             lower_percentiles = [lower_percentiles]
@@ -588,6 +582,11 @@ class ConformalPredictiveSystem(ConformalPredictor):
             lower_percentiles = []
         if higher_percentiles is None:
             higher_percentiles = []
+        if (np.array(lower_percentiles) > 100).any() or \
+           (np.array(lower_percentiles) < 0).any() or \
+           (np.array(higher_percentiles) > 100).any() or \
+           (np.array(higher_percentiles) < 0).any():
+            raise ValueError("All percentiles must be in the range [0,100]")
         no_result_columns = \
             (y is not None) + len(lower_percentiles) + len(higher_percentiles)
         if no_result_columns > 0:
@@ -597,153 +596,264 @@ class ConformalPredictiveSystem(ConformalPredictor):
             gammas = np.random.rand(len(y_hat))
             if isinstance(y, (int, float, np.integer, np.floating)):
                 if not self.mondrian:
-                    result[:,0] = np.array([(len(np.argwhere(cpds[i]<y)) \
-                                             + gammas[i])/(len(cpds[i])+1)
-                                            for i in range(len(cpds))])
+                    if self.normalized:
+                        result[:,0] = np.array(
+                            [(len(np.argwhere(
+                                (y_hat[i]+sigmas[i]*self.alphas)<y)) \
+                              + gammas[i])/(len(self.alphas)+1)
+                             for i in range(len(y_hat))])
+                    else:
+                        result[:,0] = np.array(
+                            [(len(np.argwhere((y_hat[i]+self.alphas)<y)) \
+                              + gammas[i])/(len(self.alphas)+1)
+                             for i in range(len(y_hat))])                      
                 else:
                     for b in range(len(bin_values)):
-                        result[bin_indexes[b],0] = np.array(
-                            [(len(np.argwhere(cpds[b][i]<y)) \
-                              + gammas[bin_indexes[b]][i])/(len(cpds[b])+1)
-                             for i in range(len(cpds[b]))])
+                        if self.normalized:
+                            result[bin_indexes[b],0] = np.array(
+                                [(len(np.argwhere(
+                                    (y_hat[i]+sigmas[i]*bin_alphas[b])<y)) \
+                                  + gammas[i])/(len(bin_alphas[b])+1)
+                                 for i in bin_indexes[b]])
+                        else:
+                            result[bin_indexes[b],0] = np.array(
+                                [(len(np.argwhere(
+                                    (y_hat[i]+bin_alphas[b])<y)) \
+                                  + gammas[i])/(len(bin_alphas[b])+1)
+                                 for i in bin_indexes[b]])
             elif type(y) in [list, np.ndarray] and len(y) == len(y_hat):
                 if not self.mondrian:
-                    result[:,0] = np.array([(len(np.argwhere(cpds[i]<y[i])) \
-                                             + gammas[i])/(len(cpds[i])+1)
-                                            for i in range(len(cpds))])
+                    if self.normalized:
+                        result[:,0] = np.array(
+                            [(len(np.argwhere(
+                                (y_hat[i]+sigmas[i]*self.alphas)<y[i])) \
+                              + gammas[i])/(len(self.alphas)+1)
+                             for i in range(len(y_hat))])
+                    else:
+                        result[:,0] = np.array(
+                            [(len(np.argwhere((y_hat[i]+self.alphas)<y[i])) \
+                              + gammas[i])/(len(self.alphas)+1)
+                             for i in range(len(y_hat))])
                 else:
                     for b in range(len(bin_values)):
-                        result[bin_indexes[b],0] = \
-                            np.array([(len(np.argwhere(
-                                cpds[b][i]<y[bin_indexes[b]][i])) \
-                                       + gammas[bin_indexes[b]][i]) \
-                                      /(len(cpds[b][0])+1)
-                                      for i in range(len(cpds[b]))])
+                        if self.normalized:
+                            result[bin_indexes[b],0] = np.array(
+                                [(len(np.argwhere(
+                                    (y_hat[i]+sigmas[i]*bin_alphas[b])<y[i])) \
+                                  + gammas[i])/(len(bin_alphas[b])+1)
+                                 for i in bin_indexes[b]])
+                        else:
+                            result[bin_indexes[b],0] = np.array(
+                                [(len(np.argwhere(
+                                    (y_hat[i]+bin_alphas[b])<y[i])) \
+                                  + gammas[i])/(len(bin_alphas[b])+1)
+                                 for i in bin_indexes[b]])
             else:
                 raise ValueError(("y must either be a single int, float or"
                                   "a list/numpy array of the same length as "
                                   "the residuals"))
+        percentile_indexes = []
+        y_min_columns = []
+        y_max_columns = []
         if len(lower_percentiles) > 0:
-                if not self.mondrian:
+            if not self.mondrian:
+                lower_indexes = np.array([int(lower_percentile/100 \
+                                              * (len(self.alphas)+1))-1
+                                          for lower_percentile in lower_percentiles])
+                too_low_indexes = np.argwhere(lower_indexes < 0)
+                if len(too_low_indexes) > 0:
+                    lower_indexes[too_low_indexes[:,0]] = 0
+                    percentiles_to_show = " ".join([
+                        str(lower_percentiles[i])
+                        for i in too_low_indexes[:,0]])
+                    warnings.warn("the no. of calibration examples is " \
+                                  "too few for the following lower " \
+                                  f"percentiles: {percentiles_to_show}; "\
+                                  "the corresponding values are " \
+                                  "set to y_min")
+                    y_min_columns = [no_prec_result_cols+i
+                                     for i in too_low_indexes[:,0]]
+                percentile_indexes = lower_indexes
+            else:
+                too_small_bins = []
+                binned_lower_indexes = []
+                for b in range(len(bin_values)):
                     lower_indexes = np.array([int(lower_percentile/100 \
-                                         * (len(self.alphas)+1))-1
-                                     for lower_percentile in lower_percentiles])
+                                                  * (len(bin_alphas[b])+1))-1
+                                              for lower_percentile
+                                              in lower_percentiles])
+                    binned_lower_indexes.append(lower_indexes)
                     too_low_indexes = np.argwhere(lower_indexes < 0)
                     if len(too_low_indexes) > 0:
                         lower_indexes[too_low_indexes[:,0]] = 0
-                    result[:,no_prec_result_cols:no_prec_result_cols \
-                           + len(lower_percentiles)] = cpds[:,lower_indexes]
-                    if len(too_low_indexes) > 0:
-                        percentiles_to_show = " ".join([
-                            str(lower_percentiles[i])
-                            for i in too_low_indexes[:,0]])
-                        warnings.warn("the no. of calibration examples is " \
-                                      "too few for the following lower " \
-                                      f"percentiles: {percentiles_to_show}; "\
-                                      "the corresponding values are " \
-                                      "set to y_min")
-                        y_min_columns = [no_prec_result_cols+i
-                                         for i in too_low_indexes[:,0]]
-                        result[:,y_min_columns] = y_min
-                else:
-                    too_small_bins = []
-                    for b in range(len(bin_values)):
-                        lower_indexes = np.array([int(lower_percentile/100 \
-                                             * (len(bin_alphas[b])+1))-1
-                                         for lower_percentile
-                                         in lower_percentiles])
-                        too_low_indexes = np.argwhere(lower_indexes < 0)
-                        if len(too_low_indexes) > 0:
-                            lower_indexes[too_low_indexes[:,0]] = 0
-                            too_small_bins.append(str(bin_values[b]))                            
-                        result[bin_indexes[b],
-                               no_prec_result_cols:no_prec_result_cols \
-                               + len(lower_indexes)] = cpds[b][:,lower_indexes]
-                        if len(too_low_indexes) > 0:
-                            for i in too_low_indexes[:,0]:
-                                result[bin_indexes[b],no_prec_result_cols+i] = y_min
-                    if len(too_small_bins) > 0:
-                        if len(too_small_bins) < 11:
-                            bins_to_show = " ".join(too_small_bins)
-                        else:
-                            bins_to_show = " ".join(
-                                too_small_bins[:10]+['...'])
-                        warnings.warn("the no. of calibration examples is " \
-                                      "too few for some lower percentile" \
-                                      "in the following bins:" \
-                                      f"{bins_to_show}; "\
-                                      "the corresponding values are " \
-                                      "set to y_min")
-        if y_min > -np.inf:
-            result[:,
-                   no_prec_result_cols:no_prec_result_cols \
-                   + len(lower_percentiles)]\
-                   [result[:,no_prec_result_cols:no_prec_result_cols \
-                           + len(lower_percentiles)]<y_min] = y_min
-        no_prec_result_cols += len(lower_percentiles)
+                        too_small_bins.append(str(bin_values[b]))                            
+                        y_min_columns.append([no_prec_result_cols+i
+                                              for i in too_low_indexes[:,0]])
+                    else:
+                        y_min_columns.append([])
+                percentile_indexes = [binned_lower_indexes]
+                if len(too_small_bins) > 0:
+                    if len(too_small_bins) < 11:
+                        bins_to_show = " ".join(too_small_bins)
+                    else:
+                        bins_to_show = " ".join(
+                            too_small_bins[:10]+['...'])
+                    warnings.warn("the no. of calibration examples is " \
+                                  "too few for some lower percentile " \
+                                  "in the following bins:" \
+                                  f"{bins_to_show}; "\
+                                  "the corresponding values are " \
+                                  "set to y_min")                   
         if len(higher_percentiles) > 0:
-                if not self.mondrian:
-                    higher_indexes = np.array(
-                        [int(np.ceil(higher_percentile/100 \
-                                     * (len(self.alphas)+1)))-1
-                         for higher_percentile in higher_percentiles],
-                        dtype=int)
+            if not self.mondrian:
+                higher_indexes = np.array(
+                    [int(np.ceil(higher_percentile/100 \
+                                 * (len(self.alphas)+1)))-1
+                     for higher_percentile in higher_percentiles],
+                    dtype=int)
+                too_high_indexes = np.array(
+                    [i for i in range(len(higher_indexes))
+                     if higher_indexes[i] > len(self.alphas)-1], dtype=int)
+                if len(too_high_indexes) > 0:
+                    higher_indexes[too_high_indexes] = len(self.alphas)-1
+                    percentiles_to_show = " ".join(
+                        [str(higher_percentiles[i])
+                         for i in too_high_indexes])
+                    warnings.warn("the no. of calibration examples is " \
+                                  "too few for the following higher " \
+                                  f"percentiles: {percentiles_to_show}; "\
+                                  "the corresponding values are " \
+                                  "set to y_max")
+                    y_max_columns = [no_prec_result_cols+len(lower_percentiles)+i
+                                     for i in too_high_indexes]
+                if percentile_indexes == []:
+                    percentile_indexes = higher_indexes
+                else:
+                    percentile_indexes = np.concatenate((lower_indexes,
+                                                         higher_indexes))
+            else:
+                too_small_bins = []
+                binned_higher_indexes = []
+                for b in range(len(bin_values)):
+                    higher_indexes = np.array([
+                        int(np.ceil(higher_percentile/100 \
+                                    * (len(bin_alphas[b])+1)))-1
+                        for higher_percentile in higher_percentiles])
+                    binned_higher_indexes.append(higher_indexes)
                     too_high_indexes = np.array(
                         [i for i in range(len(higher_indexes))
-                         if higher_indexes[i] > len(self.alphas)-1], dtype=int)
+                         if higher_indexes[i] > len(bin_alphas[b])-1],
+                        dtype=int)
                     if len(too_high_indexes) > 0:
-                        percentiles_to_show = " ".join(
-                            [str(higher_percentiles[i])
-                             for i in too_high_indexes])
-                        warnings.warn("the no. of calibration examples is " \
-                                      "too few for the following higher " \
-                                      f"percentiles: {percentiles_to_show}; "\
-                                      "the corresponding values are " \
-                                      "set to y_max") 
-                    higher_indexes[too_high_indexes] = len(self.alphas)-1
-                    result[:,no_prec_result_cols:no_prec_result_cols \
-                           + len(higher_indexes)] = cpds[:,higher_indexes]
-                    result[:,no_prec_result_cols+too_high_indexes] = y_max
+                        higher_indexes[too_high_indexes] = -1
+                        too_small_bins.append(str(bin_values[b]))
+                        y_max_columns.append([no_prec_result_cols + \
+                                              len(lower_percentiles)+i
+                                              for i in too_high_indexes])
+                    else:
+                        y_max_columns.append([])
+                if percentile_indexes == []:
+                    percentile_indexes = [binned_higher_indexes]
                 else:
-                    too_small_bins = []
+                    percentile_indexes.append(binned_higher_indexes)
+                if len(too_small_bins) > 0:
+                    if len(too_small_bins) < 11:
+                        bins_to_show = " ".join(too_small_bins)
+                    else:
+                        bins_to_show = " ".join(
+                            too_small_bins[:10]+['...'])
+                    warnings.warn("the no. of calibration examples is " \
+                                  "too few for some higher percentile " \
+                                  "in the following bins:" \
+                                  f"{bins_to_show}; "\
+                                  "the corresponding values are " \
+                                  "set to y_max")
+        if len(percentile_indexes) > 0:
+            if not self.mondrian:
+                if self.normalized:
+                    result[:,no_prec_result_cols:no_prec_result_cols \
+                           + len(percentile_indexes)] = np.array(
+                               [(y_hat[i] + sigmas[i] * \
+                                 self.alphas)[percentile_indexes]
+                                for i in range(len(y_hat))])
+                else:
+                    result[:,no_prec_result_cols:no_prec_result_cols \
+                           + len(percentile_indexes)] = np.array(
+                               [(y_hat[i]+self.alphas)[percentile_indexes]
+                                for i in range(len(y_hat))])
+                if len(y_min_columns) > 0:
+                    result[:,y_min_columns] = y_min
+                if len(y_max_columns) > 0:
+                    result[:,y_max_columns] = y_max
+            else:
+                if len(percentile_indexes) == 1:
+                    percentile_indexes = percentile_indexes[0]
+                else:
+                    percentile_indexes = [np.concatenate(
+                        (percentile_indexes[0][b],percentile_indexes[1][b]))
+                                          for b in range(len(bin_values))]
+                if self.normalized:
                     for b in range(len(bin_values)):
-                        higher_indexes = np.array([
-                            int(np.ceil(higher_percentile/100 \
-                                        * (len(bin_alphas[b])+1)))-1
-                            for higher_percentile in higher_percentiles])
-                        too_high_indexes = np.array(
-                            [i for i in range(len(higher_indexes))
-                             if higher_indexes[i] > len(bin_alphas[b])-1], dtype=int)
-                        if len(too_high_indexes) > 0:
-                            higher_indexes[too_high_indexes] = -1
-                            too_small_bins.append(str(bin_values[b]))                            
-                        result[bin_indexes[b],
-                               no_prec_result_cols:no_prec_result_cols \
-                               + len(higher_indexes)] = cpds[b][:,higher_indexes]
-                        if len(too_high_indexes) > 0:
-                            for i in too_high_indexes:
-                                result[bin_indexes[b],no_prec_result_cols+i] = y_max
-                    if len(too_small_bins) > 0:
-                        if len(too_small_bins) < 11:
-                            bins_to_show = " ".join(too_small_bins)
-                        else:
-                            bins_to_show = " ".join(
-                                too_small_bins[:10]+['...'])
-                        warnings.warn("the no. of calibration examples is " \
-                                      "too few for some higher percentile" \
-                                      "in the following bins:" \
-                                      f"{bins_to_show}; "\
-                                      "the corresponding values are " \
-                                      "set to y_max")
-        if y_max < np.inf:
-            result[:,no_prec_result_cols:no_prec_result_cols\
-                   + len(higher_percentiles)]\
-                   [result[:,no_prec_result_cols:no_prec_result_cols \
-                           + len(higher_percentiles)]>y_max] = y_max
+                        if len(bin_indexes[b]) > 0:
+                            result[bin_indexes[b],
+                                   no_prec_result_cols:no_prec_result_cols \
+                                   + len(percentile_indexes[b])] = \
+                                       np.array([(y_hat[i] + sigmas[i] * \
+                                                  bin_alphas[b])[
+                                                      percentile_indexes[b]]
+                                        for i in bin_indexes[b]])
+                else:
+                    for b in range(len(bin_values)):
+                        if len(bin_indexes[b]) > 0:
+                            result[bin_indexes[b],
+                                   no_prec_result_cols:no_prec_result_cols \
+                                   + len(percentile_indexes[b])] = np.array(
+                                       [(y_hat[i]+bin_alphas[b])[
+                                           percentile_indexes[b]]
+                                        for i in bin_indexes[b]])
+                if len(y_min_columns) > 0:
+                    for b in range(len(bin_values)):
+                        if len(bin_indexes[b]) > 0 and \
+                           len(y_min_columns[b]) > 0:
+                                result[bin_indexes[b],y_min_columns[b]] = y_min
+                if len(y_max_columns) > 0:
+                    for b in range(len(bin_values)):
+                        if len(bin_indexes[b]) > 0 and \
+                           len(y_max_columns[b]) > 0:
+                            result[bin_indexes[b],y_max_columns[b]] = y_max
+            if y_min > -np.inf:
+                result[:,
+                       no_prec_result_cols:no_prec_result_cols \
+                       + len(percentile_indexes)]\
+                       [result[:,no_prec_result_cols:no_prec_result_cols \
+                               + len(percentile_indexes)]<y_min] = y_min
+            if y_max < np.inf:
+                result[:,no_prec_result_cols:no_prec_result_cols\
+                       + len(percentile_indexes)]\
+                       [result[:,no_prec_result_cols:no_prec_result_cols \
+                               + len(percentile_indexes)]>y_max] = y_max
+            no_prec_result_cols += len(percentile_indexes)
         toc = time.time()
         self.time_predict = toc-tic            
         if no_result_columns > 0 and result.shape[1] == 1:
             result = result[:,0]
+        if return_cpds:
+            if not self.mondrian:
+                if self.normalized:
+                    cpds = np.array([y_hat[i]+sigmas[i]*self.alphas
+                                     for i in range(len(y_hat))])
+                else:
+                    cpds = np.array([y_hat[i]+self.alphas
+                                     for i in range(len(y_hat))])
+            else:           
+                if self.normalized:
+                    cpds = [np.array([y_hat[i]+sigmas[i]*bin_alphas[b]
+                                      for i in bin_indexes[b]])
+                            for b in range(len(bin_values))]
+                else:
+                    cpds = [np.array([y_hat[i]+bin_alphas[b] for
+                                      i in bin_indexes[b]])
+                            for b in range(len(bin_values))]
         if no_result_columns > 0 and return_cpds:
             if not self.mondrian or cpds_by_bins:
                 cpds_out = cpds
@@ -765,16 +875,16 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                                 for i in range(len(cpds[b]))]
             return cpds_out
 
-    def evaluate(self, y_hat=None, y=None, sigmas=None, bins=None,
+    def evaluate(self, y_hat, y, sigmas=None, bins=None,
                  confidence=0.95, y_min=-np.inf, y_max=np.inf, metrics=None):
         """
         Evaluate conformal predictive system.
 
         Parameters
         ----------
-        y_hat : array-like of shape (n_values,), default=None,
+        y_hat : array-like of shape (n_values,)
             predicted values
-        y : array-like of shape (n_values,), default=None,
+        y : array-like of shape (n_values,)
             correct target values
         sigmas : array-like of shape (n_values,), default=None,
             difficulty estimates
@@ -808,10 +918,18 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         .. code-block:: python
 
-           results = cps_norm_mond.evaluate(y_hat=y_hat_test, y=y_test, 
+           results = cps_norm_mond.evaluate(y_hat_test, y_test, 
                                             sigmas=sigmas_test, bins=bins_test,
                                             metrics=["error", "eff_mean", 
                                                      "eff_med", "CRPS"])
+
+        Note
+        ----
+        The use of the metric ``CRPS`` may consume a lot of memory, as a matrix
+        is generated for which the number of elements is the product of the 
+        number of calibration and test objects, unless a Mondrian approach is 
+        employed; for the latter, this number is reduced by increasing the number 
+        of bins.
         """
 
         tic = time.time()
@@ -857,7 +975,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                      lower_percentiles=lower_percentile,
                                      higher_percentiles=higher_percentile,
                                      y_min=y_min, y_max=y_max,
-                                     return_CRPS=False)
+                                     return_cpds=False)
         if "error" in metrics:
             test_results["error"] = 1-np.mean(np.logical_and(
                 intervals[:,0]<=y,y<=intervals[:,1]))
@@ -897,15 +1015,19 @@ def calculate_crps(cpds, alphas, sigmas, y):
         mean continuous-ranked probability score for the conformal
         predictive distributions 
     """
-    widths = np.array([alphas[i+1]-alphas[i] for i in range(len(alphas)-1)])
-    cum_probs = np.cumsum([1/len(alphas) for i in range(len(alphas)-1)])
-    lower_errors = cum_probs**2
-    higher_errors = (1-cum_probs)**2
-    cpd_indexes = [np.argwhere(cpds[i]<y[i]) for i in range(len(y))]
-    cpd_indexes = [-1 if len(c)==0 else c[-1][0] for c in cpd_indexes]
-    return np.mean([get_crps(cpd_indexes[i], lower_errors, higher_errors,
-                             widths, sigmas[i], cpds[i], y[i])
-                    for i in range(len(y))])
+    if len(cpds) > 0:
+        widths = np.array([alphas[i+1]-alphas[i] for i in range(len(alphas)-1)])
+        cum_probs = np.cumsum([1/len(alphas) for i in range(len(alphas)-1)])
+        lower_errors = cum_probs**2
+        higher_errors = (1-cum_probs)**2
+        cpd_indexes = [np.argwhere(cpds[i]<y[i]) for i in range(len(y))]
+        cpd_indexes = [-1 if len(c)==0 else c[-1][0] for c in cpd_indexes]
+        result = np.mean([get_crps(cpd_indexes[i], lower_errors, higher_errors,
+                                   widths, sigmas[i], cpds[i], y[i])
+                          for i in range(len(y))])
+    else:
+        result = 0
+    return result
 
 def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
     """
@@ -1117,11 +1239,11 @@ class Wrap():
         """
         if not cps:
             self.cr = ConformalRegressor()
-            self.cr.fit(residuals=residuals, sigmas=sigmas, bins=bins)
+            self.cr.fit(residuals, sigmas=sigmas, bins=bins)
             self.cps = None
         else:
             self.cps = ConformalPredictiveSystem()
-            self.cps.fit(residuals=residuals, sigmas=sigmas, bins=bins)
+            self.cps.fit(residuals, sigmas=sigmas, bins=bins)
             self.cr = None
         self.calibrated = True
         return self
@@ -1206,7 +1328,7 @@ class Wrap():
         else:
             y_hat = self.learner.predict(X)
             if self.cr is not None:
-                return self.cr.predict(y_hat=y_hat, sigmas=sigmas, bins=bins,
+                return self.cr.predict(y_hat, sigmas=sigmas, bins=bins,
                                        confidence=confidence,
                                        y_min=y_min, y_max=y_max)
             else:
@@ -1345,20 +1467,38 @@ class Wrap():
         This method is available only if the learner has been wrapped with a
         :class:`.ConformalPredictiveSystem`, i.e., :meth:`.calibrate`
         has been called with the option ``cps=True``.
+
+        Note
+        ----
+        In case the calibration set is too small for the specified lower and
+        higher percentiles, a warning will be issued and the output will be 
+        ``y_min`` and ``y_max``, respectively.
+
+        Note
+        ----
+        Setting ``return_cpds=True`` may consume a lot of memory, as a matrix is
+        generated for which the number of elements is the product of the number 
+        of calibration and test objects, unless a Mondrian approach is employed; 
+        for the latter, this number is reduced by increasing the number of bins.
+
+        Note
+        ----
+        Setting ``cpds_by_bins=True`` has an effect only for Mondrian conformal 
+        predictive systems.
         """
         if self.cps is None:
             raise RuntimeError(("predict_cps requires that calibrate has been"
                                 "called first with cps=True"))
         else:
             y_hat = self.learner.predict(X)
-            return self.cps.predict(y_hat=y_hat, sigmas=sigmas, bins=bins,
+            return self.cps.predict(y_hat, sigmas=sigmas, bins=bins,
                                     y=y, lower_percentiles=lower_percentiles,
                                     higher_percentiles=higher_percentiles,
                                     y_min=y_min, y_max=y_max,
                                     return_cpds=return_cpds,
                                     cpds_by_bins=cpds_by_bins)
 
-    def evaluate(self, X, y=None, sigmas=None, bins=None, confidence=0.95,
+    def evaluate(self, X, y, sigmas=None, bins=None, confidence=0.95,
                  y_min=-np.inf, y_max=np.inf, metrics=None):
         """
         Evaluate :class:`.ConformalRegressor` or 
@@ -1366,9 +1506,9 @@ class Wrap():
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features),
+        X : array-like of shape (n_samples, n_features)
            set of objects
-        y : array-like of shape (n_samples,), default=None,
+        y : array-like of shape (n_samples,)
             correct target values
         sigmas : array-like of shape (n_samples,), default=None,
             difficulty estimates
@@ -1402,7 +1542,7 @@ class Wrap():
 
         .. code-block:: python
 
-           results = w.evaluate(X_test, y=y_test, sigmas=sigmas_test, 
+           results = w.evaluate(X_test, y_test, sigmas=sigmas_test, 
                                 bins=bins_test, confidence=0.9,
                                 metrics=["error", "eff_mean", "eff_med"])
 
@@ -1412,6 +1552,14 @@ class Wrap():
         probability score) will be ignored if the :class:`.Wrap` object has been
         calibrated with the (default) option ``cps=False``, i.e., the learner is
         wrapped with a :class:`.ConformalRegressor`.
+
+        Note
+        ----
+        The use of the metric ``CRPS`` may consume a lot of memory, as a matrix
+        is generated for which the number of elements is the product of the 
+        number of calibration and test objects, unless a Mondrian approach is 
+        employed; for the latter, this number is reduced by increasing the number 
+        of bins.
 
         Note
         ----
@@ -1425,10 +1573,10 @@ class Wrap():
         else:
             y_hat = self.learner.predict(X)
             if self.cr is not None:
-                return self.cr.evaluate(y_hat=y_hat, y=y, sigmas=sigmas,
+                return self.cr.evaluate(y_hat, y, sigmas=sigmas,
                                         bins=bins, confidence=confidence,
                                         y_min=y_min, y_max=y_max)
             else:
-                return self.cps.evaluate(y_hat=y_hat, y=y, sigmas=sigmas,
+                return self.cps.evaluate(y_hat, y, sigmas=sigmas,
                                          bins=bins, confidence=confidence,
                                          y_min=y_min, y_max=y_max)
