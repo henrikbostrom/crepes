@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg?dummy=unused" alt="PyPI version" height=20 align="center"></a>
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://anaconda.org/conda-forge/crepes/badges/version.svg?dummy=unused" alt="Anaconda version" height=20 align="center"></a>
+
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
 <a href="https://anaconda.org/conda-forge/crepes"><img src="https://anaconda.org/conda-forge/crepes/badges/platforms.svg?dummy=unused" alt="Platforms" height=20 align="center"></a>
 <a href="https://anaconda.org/conda-forge/crepes"><img src="https://anaconda.org/conda-forge/crepes/badges/license.svg?dummy=unused" alt="License" height=20 align="center"></a>
