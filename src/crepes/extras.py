@@ -160,7 +160,7 @@ class DifficultyEstimator():
         .. code-block:: python
         
            de_knn_mod = DifficultyEstimator() 
-           de_knn_dist.fit(X_prop_train, k=10, beta=0.001, scaler=True)
+           de_knn_mod.fit(X_prop_train, k=10, beta=0.001, scaler=True)
 
         Note
         ----
@@ -284,7 +284,7 @@ class DifficultyEstimator():
 
         .. code-block:: python
         
-           oob_difficulty_estimates = de.apply()
+           oob_difficulty_estimates = de_oob.apply()
 
         For a difficulty estimator employing any of the k-nearest neighbor 
         approaches, the above will return an estimate for the difficulty 
