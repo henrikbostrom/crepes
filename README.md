@@ -31,7 +31,7 @@ conda install -c conda-forge crepes
 
 ## Documentation
 
-For the complete documentation, see [here](https://crepes.readthedocs.io/en/latest/).
+For the complete documentation, see [crepes.readthedocs.io](https://crepes.readthedocs.io/en/latest/).
 
 ## Quickstart
 
