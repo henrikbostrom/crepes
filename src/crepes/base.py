@@ -11,7 +11,7 @@ Copyright 2023 Henrik Boström
 License: BSD 3 clause
 """
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 import numpy as np
 import pandas as pd
@@ -933,12 +933,12 @@ class ConformalPredictiveSystem(ConformalPredictor):
         """
 
         tic = time.time()
+        test_results = {}
+        lower_percentile = (1-confidence)/2*100
+        higher_percentile = (confidence+(1-confidence)/2)*100
         if metrics is None:
             metrics = ["error","eff_mean","eff_med","CRPS","time_fit",
                        "time_evaluate"]
-            lower_percentile = (1-confidence)/2*100
-            higher_percentile = (confidence+(1-confidence)/2)*100
-            test_results = {}
         if "CRPS" in metrics:
             results, cpds = self.predict(y_hat, sigmas=sigmas, bins=bins, y=y,
                                          lower_percentiles=lower_percentile,
