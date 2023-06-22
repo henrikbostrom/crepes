@@ -1,5 +1,11 @@
 # Changelog
 	
+## v0.5.1 (22/06/2023)
+
+### Fix
+
+- Fixed a bug in the ``evaluate`` method of ``ConformalPredictiveSystem``, which caused an error when using ``CRPS`` as a single metric, i.e., when providing ``metrics=["CRPS"]`` as input. Thanks to @Zeeshan-Khaliq for pointing this out.
+	
 ## v0.5.0 (02/06/2023)
 
 ### Feature
