@@ -21,10 +21,10 @@ copyright = '2023, Henrik Boström'
 author = 'Henrik Boström'
 
 # The short X.Y version
-version = '0.5.0'
+version = '0.5.1'
 
 # The full version, including alpha/beta/rc tags
-release = '0.5.0'
+release = '0.5.1'
 
 
 # -- General configuration ---------------------------------------------------
