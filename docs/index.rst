@@ -6,9 +6,19 @@
 
 .. title:: crepes
 
-``crepes`` is a Python package for generating conformal regressors, which transform point predictions of any underlying regression model into prediction intervals for specified levels of confidence. The package also implements conformal predictive systems, which transform the point predictions into cumulative distribution functions.
+``crepes`` is a Python package that implements conformal classifiers,
+regressors, and predictive systems, on top of any standard classifier
+and regressor, transforming the original predictions into
+well-calibrated p-values and cumulative distribution functions, or
+prediction sets and intervals with coverage guarantees.
 
-The ``crepes`` package implements standard, normalized and Mondrian conformal regressors and predictive systems. While the package allows you to use your own difficulty estimates and Mondrian categories, there is also a separate module, called ``crepes.extras``, which provides some standard options for these.
+The ``crepes`` package implements standard and Mondrian conformal
+classifiers as well as standard, normalized and Mondrian conformal
+regressors and predictive systems. While the package allows you to use
+your own functions to compute difficulty estimates, non-conformity
+scores and Mondrian categories, there is also a separate module,
+called ``crepes.extras``, which provides some standard options for
+these.
 
 .. raw:: html
 
