@@ -1,39 +1,333 @@
-"""Conformal regressors and predictive systems (crepes)
+"""Conformal classifiers, regressors, and predictive systems (crepes)
 
-Classes implementing conformal regressors and conformal predictive
-systems, which transform point predictions into prediction intervals
-and cumulative distribution functions, respectively.
+Classes implementing conformal classifiers, regressors, and predictive
+systems, on top of any standard classifier and regressor, transforming
+the original predictions into well-calibrated p-values and cumulative
+distribution functions, or prediction sets and intervals with coverage
+guarantees.
 
 Author: Henrik Boström (bostromh@kth.se)
 
 Copyright 2023 Henrik Boström
 
 License: BSD 3 clause
+
 """
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 import numpy as np
 import pandas as pd
 import time
 import warnings
 
+from crepes.extras import hinge
+
 warnings.simplefilter("always", UserWarning)
 
 class ConformalPredictor():
     """
-    The class contains two sub-classes: ConformalRegressor 
-    and ConformalPredictiveSystem.
+    The class contains three sub-classes: :class:`.ConformalClassifier`,
+    :class:`.ConformalRegressor`, and :class:`.ConformalPredictiveSystem`.
     """
     
     def __init__(self):
-        self.alphas = None
         self.fitted = False
-        self.normalized = None
         self.mondrian = None
         self.time_fit = None
         self.time_predict = None
         self.time_evaluate = None
+        self.alphas = None
+        self.normalized = None
+
+class ConformalClassifier(ConformalPredictor):
+    """
+    A conformal classifier transforms non-conformity scores into p-values
+    or prediction sets for a certain confidence level.
+    """
+    
+    def __repr__(self):
+        if self.fitted:
+            return (f"ConformalClassifier(fitted={self.fitted}, "
+                    f"mondrian={self.mondrian})")
+        else:
+            return f"ConformalClassifier(fitted={self.fitted})"
+    
+    def fit(self, alphas, bins=None):
+        """
+        Fit conformal classifier.
+
+        Parameters
+        ----------
+        alphas : array-like of shape (n_samples,)
+            non-conformity scores
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+
+        Returns
+        -------
+        self : object
+            Fitted ConformalClassifier.
+
+        Examples
+        --------
+        Assuming that ``alphas_cal`` is a vector with non-conformity scores,
+        then a standard conformal classifier is formed in the following way:
+
+        .. code-block:: python
+
+           from crepes import ConformalClassifier
+
+           cc_std = ConformalClassifier() 
+
+           cc_std.fit(alphas_cal) 
+
+        Assuming that ``bins_cals`` is a vector with Mondrian categories 
+        (bin labels), then a Mondrian conformal classifier is fitted in the
+        following way:
+
+        .. code-block:: python
+
+           cc_mond = ConformalClassifier()
+           cc_mond.fit(alphas_cal, bins=bins_cal)
+        """
+        tic = time.time()
+        if bins is None:
+            self.mondrian = False
+            self.alphas = np.sort(alphas)[::-1]
+        else: 
+            self.mondrian = True
+            bin_values = np.unique(bins)
+            self.alphas = (bin_values, [np.sort(alphas[bins==b])[::-1]
+                                        for b in bin_values])
+        self.fitted = True
+        toc = time.time()
+        self.time_fit = toc-tic
+        return self
+
+    def predict_p(self, alphas, bins=None, confidence=0.95):
+        """
+        Obtain (smoothed) p-values from conformal classifier.
+
+        Parameters
+        ----------
+        alphas : array-like of shape (n_samples, n_classes)
+            non-conformity scores
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+
+        Returns
+        -------
+        p-values : ndarray of shape (n_samples, n_classes)
+            p-values
+
+        Examples
+        --------
+        Assuming that ``alphas_test`` is a vector with non-conformity scores
+        for a test set and ``cc_std`` a fitted standard conformal classifier, 
+        then p-values for the test is obtained by:
+
+        .. code-block:: python
+
+           p_values = cc_std.predict_p(alphas_test)
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``cc_mond`` a fitted Mondrian conformal 
+        classifier, then the following provides p-values for the test set:
+
+        .. code-block:: python
+
+           p_values = cc_mond.predict_p(alphas_test, bins=bins_test)
+        """
+        tic = time.time()
+        if not self.mondrian:
+            p_values = np.array(
+                [[(np.sum(self.alphas > alpha) + np.random.rand()*(
+                    np.sum(self.alphas == alpha)+1))/(len(self.alphas)+1)
+                  for alpha in alpha_row] for alpha_row in alphas])
+        else:           
+            bin_values, bin_alphas = self.alphas
+            bin_indexes = np.array([np.argwhere(bin_values == bins[i])[0][0]
+                                    for i in range(len(bins))])
+            p_values = np.array([[(np.sum(bin_alphas[bin_indexes[i]] > alpha) \
+                                   + np.random.rand()*(np.sum(bin_alphas[
+                                       bin_indexes[i]] == alpha)+1))/(
+                                           len(bin_alphas[bin_indexes[i]])+1)
+                                  for alpha in alphas[i]]
+                                 for i in range(len(alphas))])
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return p_values
+    
+    def predict_set(self, alphas, bins=None, confidence=0.95, smoothing=False):
+        """
+        Obtain prediction sets using conformal classifier.
+
+        Parameters
+        ----------
+        alphas : array-like of shape (n_samples, n_classes)
+            non-conformity scores
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        smoothing : bool, default=False
+           use smoothed p-values
+
+        Returns
+        -------
+        prediction sets : ndarray of shape (n_samples, n_classes)
+            prediction sets
+
+        Examples
+        --------
+        Assuming that ``alphas_test`` is a vector with non-conformity scores
+        for a test set and ``cc_std`` a fitted standard conformal classifier, 
+        then prediction sets at the default (95%) confidence level are
+        obtained by:
+
+        .. code-block:: python
+
+           prediction_sets = cc_std.predict_set(alphas_test)
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``cc_mond`` a fitted Mondrian conformal 
+        classifier, then the following provides prediction sets for the test set,
+        at the 90% confidence level:
+
+        .. code-block:: python
+
+           p_values = cc_mond.predict_set(alphas_test, 
+                                          bins=bins_test,
+                                          confidence=0.9)
+
+        Note
+        ----
+        Using smoothed p-values substantially increases computation time and
+        hardly has any effect on the predictions sets, except for when having 
+        small calibration sets.
+        """
+        tic = time.time()
+        if smoothing:
+            p_values = self.predict_p(alphas, bins)
+            prediction_sets = (p_values >= 1-confidence).astype(int)
+        elif bins is None:
+            alpha_index = int((1-confidence)*(len(self.alphas)+1))-1
+            if alpha_index >= 0:
+                alpha_value = self.alphas[alpha_index]
+                prediction_sets = (alphas <= alpha_value).astype(int)
+            else:
+                prediction_sets = np.ones(alphas.shape)
+                warnings.warn("the no. of calibration examples is " \
+                              "too small for the chosen confidence level; " \
+                              "all labels are included in the prediction sets")
+        else:
+            bin_values, bin_alphas = self.alphas
+            alpha_indexes = np.array(
+                [int((1-confidence)*(len(bin_alphas[b])+1))-1
+                 for b in range(len(bin_values))])
+            alpha_values = [bin_alphas[b][alpha_indexes[b]]
+                            if alpha_indexes[b] >= 0
+                            else -np.inf for b in range(len(bin_values))]
+            bin_indexes = np.array([np.argwhere(bin_values == bins[i])[0][0]
+                                    for i in range(len(bins))])
+            prediction_sets = np.array(
+                [alphas[i] <= alpha_values[bin_indexes[i]]
+                 for i in range(len(alphas))], dtype=int)
+            if (alpha_indexes < 0).any():
+                warnings.warn("the no. of calibration examples in some bins is" \
+                              " too small for the chosen confidence level; " \
+                              "all labels are included in the corresponding" \
+                              "prediction sets")
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return prediction_sets
+
+    def evaluate(self, alphas, classes, y, bins=None, confidence=0.95,
+                 smoothing=False, metrics=None):
+        """
+        Evaluate conformal classifier.
+
+        Parameters
+        ----------
+        alphas : array-like of shape (n_samples, n_classes)
+            non-conformity scores
+        classes : array-like of shape (n_classes,)
+            class names
+        y : array-like of shape (n_samples,)
+            correct class labels
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        smoothing : bool, default=False
+           use smoothed p-values
+        metrics : a string or a list of strings, 
+                  default = list of all metrics, i.e., ["error", "avg_c", 
+                  "one_c", "empty", "time_fit", "time_evaluate"]
+        
+        Returns
+        -------
+        results : dictionary with a key for each selected metric 
+            estimated performance using the metrics, where "error" is the 
+            fraction of prediction sets not containing the true class label,
+            "avg_c" is the average no. of predicted class labels, "one_c" is
+            the fraction of singleton prediction sets, "empty" is the fraction
+            of empty prediction sets, "time_fit" is the time taken to fit the 
+            conformal classifier, and "time_evaluate" is the time taken for the
+            evaluation 
+
+        Examples
+        --------
+        Assuming that ``alphas`` is an array containing non-conformity scores 
+        for all classes for the test objects, ``classes`` and ``y_test`` are 
+        vectors with the class names and true class labels for the test set, 
+        respectively, and ``cc`` is a fitted standard conformal classifier, 
+        then the latter can be evaluated at the default confidence level with 
+        respect to error and average number of labels in the prediction sets by:
+
+        .. code-block:: python
+
+           results = cc.evaluate(alphas, y_test, metrics=["error", "avg_c"])
+
+        Note
+        ----
+        Using smoothed p-values substantially increases computation time and
+        hardly has any effect on the results, except for when having small 
+        calibration sets.
+        """
+        if metrics is None:
+            metrics = ["error", "avg_c", "one_c", "empty", "time_fit",
+                       "time_evaluate"]
+        tic = time.time()
+        prediction_sets = self.predict_set(alphas, bins, confidence, smoothing)
+        test_results = get_test_results(prediction_sets, classes, y, metrics)
+        toc = time.time()
+        self.time_evaluate = toc-tic
+        if "time_fit" in metrics:
+            test_results["time_fit"] = self.time_fit
+        if "time_evaluate" in metrics:
+            test_results["time_evaluate"] = self.time_evaluate
+        return test_results
+
+def get_test_results(prediction_sets, classes, y, metrics):
+    test_results = {}
+    class_indexes = np.array(
+        [np.argwhere(classes == y[i])[0][0] for i in range(len(y))])        
+    if "error" in metrics:
+        test_results["error"] = 1-np.sum(
+            prediction_sets[np.arange(len(y)), class_indexes]) / len(y)
+    if "avg_c" in metrics:            
+        test_results["avg_c"] = np.sum(prediction_sets) / len(y)
+    if "one_c" in metrics:            
+        test_results["one_c"] = np.sum(
+            [np.sum(p) == 1 for p in prediction_sets]) / len(y)
+    if "empty" in metrics:            
+        test_results["empty"] = np.sum(
+            [np.sum(p) == 0 for p in prediction_sets]) / len(y)
+    return test_results
 
 class ConformalRegressor(ConformalPredictor):
     """
@@ -212,7 +506,7 @@ class ConformalRegressor(ConformalPredictor):
             else:
                 intervals[:,0] = -np.inf 
                 intervals[:,1] = np.inf
-                warnings.warn("the no. of calibration examples is too few" \
+                warnings.warn("the no. of calibration examples is too small" \
                               "for the chosen confidence level; the " \
                               "intervals will be of maximum size")
         else:           
@@ -311,7 +605,7 @@ class ConformalRegressor(ConformalPredictor):
         intervals = self.predict(y_hat, sigmas, bins, confidence, y_min, y_max)
         if "error" in metrics:
             test_results["error"] = 1-np.mean(
-                np.logical_and(intervals[:,0]<=y,y<=intervals[:,1]))
+                np.logical_and(intervals[:,0]<=y, y<=intervals[:,1]))
         if "eff_mean" in metrics:            
             test_results["eff_mean"] = np.mean(intervals[:,1]-intervals[:,0])
         if "eff_med" in metrics:            
@@ -667,7 +961,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                         str(lower_percentiles[i])
                         for i in too_low_indexes[:,0]])
                     warnings.warn("the no. of calibration examples is " \
-                                  "too few for the following lower " \
+                                  "too small for the following lower " \
                                   f"percentiles: {percentiles_to_show}; "\
                                   "the corresponding values are " \
                                   "set to y_min")
@@ -699,7 +993,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                         bins_to_show = " ".join(
                             too_small_bins[:10]+['...'])
                     warnings.warn("the no. of calibration examples is " \
-                                  "too few for some lower percentile " \
+                                  "too small for some lower percentile " \
                                   "in the following bins:" \
                                   f"{bins_to_show}; "\
                                   "the corresponding values are " \
@@ -720,7 +1014,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                         [str(higher_percentiles[i])
                          for i in too_high_indexes])
                     warnings.warn("the no. of calibration examples is " \
-                                  "too few for the following higher " \
+                                  "too small for the following higher " \
                                   f"percentiles: {percentiles_to_show}; "\
                                   "the corresponding values are " \
                                   "set to y_max")
@@ -763,7 +1057,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                         bins_to_show = " ".join(
                             too_small_bins[:10]+['...'])
                     warnings.warn("the no. of calibration examples is " \
-                                  "too few for some higher percentile " \
+                                  "too small for some higher percentile " \
                                   "in the following bins:" \
                                   f"{bins_to_show}; "\
                                   "the corresponding values are " \
@@ -978,7 +1272,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                      return_cpds=False)
         if "error" in metrics:
             test_results["error"] = 1-np.mean(np.logical_and(
-                intervals[:,0]<=y,y<=intervals[:,1]))
+                intervals[:,0]<=y, y<=intervals[:,1]))
         if "eff_mean" in metrics:            
             test_results["eff_mean"] = np.mean(intervals[:,1]-intervals[:,0])
         if "eff_med" in metrics:            
@@ -1067,8 +1361,8 @@ def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
             lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma +\
             higher_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
     return score
-
-class Wrap():
+    
+class WrapRegressor():
     """
     A learner wrapped with a :class:`.ConformalRegressor`
     or :class:`.ConformalPredictiveSystem`.
@@ -1083,15 +1377,15 @@ class Wrap():
     def __repr__(self):
         if self.calibrated:
             if self.cr is not None:
-                return (f"Wrap(learner={self.learner}, "
+                return (f"WrapRegressor(learner={self.learner}, "
                         f"calibrated={self.calibrated}, "
                         f"predictor={self.cr})")
             else:
-                return (f"Wrap(learner={self.learner}, "
+                return (f"WrapRegressor(learner={self.learner}, "
                         f"calibrated={self.calibrated}, "
                         f"predictor={self.cps})")                
         else:
-            return f"Wrap(learner={self.learner}, calibrated={self.calibrated})"
+            return f"WrapRegressor(learner={self.learner}, calibrated={self.calibrated})"
         
     def fit(self, X, y, **kwargs):
         """
@@ -1120,9 +1414,9 @@ class Wrap():
         .. code-block:: python
 
            from sklearn.ensemble import RandomForestRegressor
-           from crepes import Wrap
+           from crepes import WrapRegressor
 
-           rf = Wrap(RandomForestRegressor())
+           rf = WrapRegressor(RandomForestRegressor())
            rf.fit(X_train, y_train)
            
         Note
@@ -1155,10 +1449,9 @@ class Wrap():
 
         Examples
         --------
-        Assuming ``w`` is a :class:`.Wrap` object for which the wrapped
-        learner ``w.learner`` has been fitted, (point) 
-        predictions of the learner can be obtained for a set
-        of test objects ``X_test`` by:
+        Assuming ``w`` is a :class:`.WrapRegressor` object for which the wrapped
+        learner ``w.learner`` has been fitted, (point) predictions of the 
+        learner can be obtained for a set of test objects ``X_test`` by:
 
         .. code-block:: python
 
@@ -1172,71 +1465,99 @@ class Wrap():
         """
         return self.learner.predict(X)
 
-    def calibrate(self, residuals, sigmas=None, bins=None, cps=False):
+    def calibrate(self, X, y, sigmas=None, bins=None, oob=False, cps=False):
         """
         Fit a :class:`.ConformalRegressor` or 
         :class:`.ConformalPredictiveSystem` using learner.
 
         Parameters
         ----------
-        residuals : array-like of shape (n_samples,)
-            actual values - predicted values
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        y : array-like of shape (n_samples,),
+            target values
         sigmas: array-like of shape (n_samples,), default=None
             difficulty estimates
         bins : array-like of shape (n_samples,), default=None
             Mondrian categories
+        oob : bool, default=False
+           use out-of-bag estimation
         cps : bool, default=False
-            if cps=false, the method fits a :class:`.ConformalRegressor`
+            if cps=False, the method fits a :class:`.ConformalRegressor`
             and otherwise, a :class:`.ConformalPredictiveSystem`
 
         Returns
         -------
         self : object
-            Wrap object updated with a fitted :class:`.ConformalRegressor` or 
-            :class:`.ConformalPredictiveSystem`
+            The :class:`.WrapRegressor` object is updated with a fitted 
+            :class:`.ConformalRegressor` or :class:`.ConformalPredictiveSystem`
 
         Examples
         --------
         Assuming ``X_cal`` and ``y_cal`` to be an array and vector, 
         respectively, with objects and labels for the calibration set,
-        and ``w`` is a :class:`.Wrap` object for which the learner 
-        has been fitted, a standard conformal regressor
-        can be formed from the residuals:
+        and ``w`` is a :class:`.WrapRegressor` object for which the learner 
+        has been fitted, a standard conformal regressor is formed by:
 
         .. code-block:: python
 
-           residuals_cal = y_cal - w.predict(X_cal)
-
-           w.calibrate(residuals_cal) 
+           w.calibrate(X_cal, y_cal) 
 
         Assuming that ``sigmas_cal`` is a vector with difficulty estimates,
-        a normalized conformal regressor can be obtained by: 
+        a normalized conformal regressor is obtained by: 
 
         .. code-block:: python
 
-           w.calibrate(residuals_cal, sigmas=sigmas_cal)
+           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal)
 
         Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
-        labels), a Mondrian conformal regressor can be obtained by:
+        labels), a Mondrian conformal regressor is obtained by:
 
         .. code-block:: python
 
-           w.calibrate(residuals_cal, bins=bins_cal)
+           w.calibrate(X_cal, y_cal, bins=bins_cal)
 
-        A normalized Mondrian conformal regressor can be generated in the
+        A normalized Mondrian conformal regressor is generated in the
         following way:
 
         .. code-block:: python
 
-           w.calibrate(residuals_cal, sigmas=sigmas_cal, bins=bins_cal)
+           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal, bins=bins_cal)
+
+        By providing the option ``oob=True``, the conformal regressor
+        will be calibrating using out-of-bag predictions, allowing
+        the full set of training objects (``X_train``) and labels (``y_train``)
+        to be used, e.g.,
+
+        .. code-block:: python
+
+           w.calibrate(X_train, y_train, oob=True)
 
         By providing the option ``cps=True``, each of the above calls will instead 
         generate a :class:`.ConformalPredictiveSystem`, e.g.,
 
         .. code-block:: python
 
-           w.calibrate(residuals_cal, sigmas=sigmas_cal, cps=True)
+           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal, cps=True)
+
+        Note
+        ----
+        Enabling out-of-bag calibration, i.e., setting ``oob=True``, requires 
+        that the wrapped learner has an attribute ``oob_prediction_``, which 
+        e.g., is the case for a ``sklearn.ensemble.RandomForestRegressor``, if
+        enabled when created, e.g., ``RandomForestRegressor(oob_score=True)``
+
+        Note
+        ----
+        The use of out-of-bag calibration, as enabled by ``oob=True``, 
+        does not come with the theoretical validity guarantees of the regular
+        (inductive) conformal regressors and predictive systems, due to that
+        calibration and test instances are not handled in exactly the same way.
         """
+        if oob:
+            residuals = y - self.learner.oob_prediction_
+        else:
+            residuals = y - self.predict(X)
         if not cps:
             self.cr = ConformalRegressor()
             self.cr.fit(residuals, sigmas=sigmas, bins=bins)
@@ -1277,16 +1598,16 @@ class Wrap():
         Examples
         --------
         Assuming that ``X_test`` is a set of test objects and ``w`` is a 
-        :class:`.Wrap` object that has been calibrated, i.e., :meth:`.calibrate`
-        has been applied, prediction intervals at the 99% confidence level can 
-        be obtained by:
+        :class:`.WrapRegressor` object that has been calibrated, i.e., 
+        :meth:`.calibrate` has been applied, prediction intervals at the 
+        99% confidence level can be obtained by:
 
         .. code-block:: python
 
            intervals = w.predict_int(X_test, confidence=0.99)
 
         Assuming that ``sigmas_test`` is a vector with difficulty estimates for
-        the test set and ``w`` is a :class:`.Wrap` object that has been 
+        the test set and ``w`` is a :class:`.WrapRegressor` object that has been 
         calibrated with both residuals and difficulty estimates, prediction
         intervals at the default (95%) confidence level can be obtained by:
 
@@ -1295,9 +1616,9 @@ class Wrap():
            intervals = w.predict_int(X_test, sigmas=sigmas_test)
 
         Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
-        labels) for the test set and ``w`` is a :class:`.Wrap` object that has 
-        been calibrated with both residuals and bins, the following provides 
-        prediction intervals at the default confidence level, where the 
+        labels) for the test set and ``w`` is a :class:`.WrapRegressor` object 
+        that has been calibrated with both residuals and bins, the following 
+        provides prediction intervals at the default confidence level, where the
         intervals are lower-bounded by 0:
 
         .. code-block:: python
@@ -1313,14 +1634,14 @@ class Wrap():
         Note
         ----
         Note that ``sigmas`` and ``bins`` will be ignored by 
-        :meth:`.predict_int`, if the :class:`.Wrap` object has been calibrated 
-        without specifying any such values.
+        :meth:`.predict_int`, if the :class:`.WrapRegressor` object has been 
+        calibrated without specifying any such values.
 
         Note
         ----
         Note that an error will be reported if ``sigmas`` and ``bins`` are not
-        provided to :meth:`.predict_int`, if the :class:`.Wrap` object has
-        been calibrated with such values.
+        provided to :meth:`.predict_int`, if the :class:`.WrapRegressor` object 
+        has been calibrated with such values.
         """
         if not self.calibrated:
             raise RuntimeError(("predict_int requires that calibrate has been"
@@ -1396,8 +1717,8 @@ class Wrap():
         Examples
         --------
         Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
-        vector with true targets, ``w`` is a :class:`.Wrap` object calibrated
-        with the option ``cps=True``, p-values for the true targets 
+        vector with true targets, ``w`` is a :class:`.WrapRegressor` object 
+        calibrated with the option ``cps=True``, p-values for the true targets 
         can be obtained by:
 
         .. code-block:: python
@@ -1536,8 +1857,8 @@ class Wrap():
         Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
         vector with true targets, ``sigmas_test`` and ``bins_test`` are
         vectors with difficulty estimates and Mondrian categories (bin labels) 
-        for the test set, and ``w`` is a calibrated :class:`.Wrap` object, 
-        then the latter can be evaluated at the 90% confidence level 
+        for the test set, and ``w`` is a calibrated :class:`.WrapRegressor`
+        object, then the latter can be evaluated at the 90% confidence level 
         with respect to error, mean and median efficiency (interval size) by:
 
         .. code-block:: python
@@ -1549,9 +1870,9 @@ class Wrap():
         Note
         ----
         If included in the list of metrics, "CRPS" (continuous-ranked
-        probability score) will be ignored if the :class:`.Wrap` object has been
-        calibrated with the (default) option ``cps=False``, i.e., the learner is
-        wrapped with a :class:`.ConformalRegressor`.
+        probability score) will be ignored if the :class:`.WrapRegressor` object
+        has been calibrated with the (default) option ``cps=False``, i.e., the 
+        learner is wrapped with a :class:`.ConformalRegressor`.
 
         Note
         ----
@@ -1580,3 +1901,422 @@ class Wrap():
                 return self.cps.evaluate(y_hat, y, sigmas=sigmas,
                                          bins=bins, confidence=confidence,
                                          y_min=y_min, y_max=y_max)
+
+class WrapClassifier():
+    """
+    A learner wrapped with a :class:`.ConformalClassifier`.
+    """
+    
+    def __init__(self, learner):
+        self.cc = None
+        self.nc = None
+        self.calibrated = False
+        self.learner = learner
+
+    def __repr__(self):
+        if self.calibrated:
+            return (f"WrapClassifier(learner={self.learner}, "
+                    f"calibrated={self.calibrated}, "
+                    f"predictor={self.cc})")
+        else:
+            return f"WrapClassifier(learner={self.learner}, calibrated={self.calibrated})"
+        
+    def fit(self, X, y, **kwargs):
+        """
+        Fit learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        y : array-like of shape (n_samples,),
+            target values
+        kwargs : optional arguments
+           any additional arguments are forwarded to the
+           ``fit`` method of the ``learner`` object
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        Assuming ``X_train`` and ``y_train`` to be an array and vector 
+        with training objects and labels, respectively, a random
+        forest may be wrapped and fitted by:
+
+        .. code-block:: python
+
+           from sklearn.ensemble import RandomForestClassifier
+           from crepes import WrapClassifier
+
+           rf = Wrap(RandomForestClassifier())
+           rf.fit(X_train, y_train)
+           
+        Note
+        ----
+        The learner, which can be accessed by ``rf.learner``, may be fitted 
+        before as well as after being wrapped.
+
+        Note
+        ----
+        All arguments, including any additional keyword arguments, to 
+        :meth:`.fit` are forwarded to the ``fit`` method of the learner.        
+        """
+        self.learner.fit(X, y, **kwargs)
+    
+        
+    def predict(self, X):
+        """
+        Predict with learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+
+        Returns
+        -------
+        y : array-like of shape (n_samples,),
+            values predicted using the ``predict`` 
+            method of the ``learner`` object.
+
+        Examples
+        --------
+        Assuming ``w`` is a :class:`.WrapClassifier` object for which the 
+        wrapped learner ``w.learner`` has been fitted, (point) 
+        predictions of the learner can be obtained for a set
+        of test objects ``X_test`` by:
+
+        .. code-block:: python
+
+           y_hat = w.predict(X_test)
+           
+        The above is equivalent to:
+
+        .. code-block:: python
+
+           y_hat = w.learner.predict(X_test)
+        """
+        return self.learner.predict(X)
+
+    def predict_proba(self, X):
+        """
+        Predict with learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+
+        Returns
+        -------
+        y : array-like of shape (n_samples, n_classes),
+            predicted probabilities using the ``predict_proba`` 
+            method of the ``learner`` object.
+
+        Examples
+        --------
+        Assuming ``w`` is a :class:`.WrapClassifier` object for which the 
+        wrapped learner ``w.learner`` has been fitted, predicted
+        probabilities of the learner can be obtained for a set
+        of test objects ``X_test`` by:
+
+        .. code-block:: python
+
+           probabilities = w.predict_proba(X_test)
+           
+        The above is equivalent to:
+
+        .. code-block:: python
+
+           probabilities = w.learner.predict_proba(X_test)
+        """
+        return self.learner.predict_proba(X)
+    
+    def calibrate(self, X, y, bins=None, oob=False, class_cond=False, nc=hinge):
+        """
+        Fit a :class:`.ConformalClassifier` using learner.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        y : array-like of shape (n_samples,),
+            target values
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        oob : bool, default=False
+           use out-of-bag estimation
+        class_cond : bool, default=False
+            if class_cond=True, the method fits a Mondrian
+            :class:`.ConformalClassifier` using the class
+            labels as categories
+        nc : function, default = :func:`crepes.extras.hinge`
+            function to compute non-conformity scores
+
+        Returns
+        -------
+        self : object
+            Wrap object updated with a fitted :class:`.ConformalClassifier`
+
+        Examples
+        --------
+        Assuming ``X_cal`` and ``y_cal`` to be an array and vector, 
+        respectively, with objects and labels for the calibration set,
+        and ``w`` is a :class:`.WrapClassifier` object for which the learner 
+        has been fitted, a standard conformal classifier can be formed by:
+
+        .. code-block:: python
+
+           w.calibrate(X_cal, y_cal) 
+
+        Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
+        labels), a Mondrian conformal classifier can be generated by:
+
+        .. code-block:: python
+
+           w.calibrate(X_cal, y_cal, bins=bins_cal)
+
+        By providing the option ``oob=True``, the conformal classifier
+        will be calibrating using out-of-bag predictions, allowing
+        the full set of training objects (``X_train``) and labels (``y_train``)
+        to be used, e.g.,
+
+        .. code-block:: python
+
+           w.calibrate(X_train, y_train, oob=True)
+
+        By providing the option ``class_cond=True``, a Mondrian conformal classifier
+        will be formed using the class labels as categories, e.g.,
+
+        .. code-block:: python
+
+           w.calibrate(X_cal, y_cal, class_cond=True)
+
+        Note
+        ----
+        Any Mondrian categories provided with the ``bins`` argument will be 
+        ignored by :meth:`.calibrate`, if ``class_cond=True``, as the latter 
+        implies that Mondrian categories are formed using the labels in ``y``. 
+
+        Note
+        ----
+        Enabling out-of-bag calibration, i.e., setting ``oob=True``, requires 
+        that the wrapped learner has an attribute ``oob_decision_function_``, 
+        which e.g., is the case for a ``sklearn.ensemble.RandomForestClassifier``, 
+        if enabled when created, e.g., ``RandomForestClassifier(oob_score=True)``
+
+        Note
+        ----
+        The use of out-of-bag calibration, as enabled by ``oob=True``, does not 
+        come with the theoretical validity guarantees of the regular (inductive) 
+        conformal classifiers, due to that calibration and test instances are not
+        handled in exactly the same way.
+        """
+        self.cc = ConformalClassifier()
+        self.nc = nc
+        self.class_cond = class_cond
+        if oob:
+            alphas = nc(self.learner.oob_decision_function_, self.learner.classes_, y)
+        else:
+            alphas = nc(self.learner.predict_proba(X), self.learner.classes_, y)
+        if class_cond:
+            self.cc.fit(alphas, bins=y)
+        else:
+            self.cc.fit(alphas, bins=bins)
+        self.calibrated = True
+        return self
+
+    def predict_p(self, X, bins=None):
+        """
+        Obtain (smoothed) p-values using conformal classifier.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+
+        Returns
+        -------
+        p-values : ndarray of shape (n_samples, n_classes)
+            p-values
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects and ``w`` is a 
+        :class:`.WrapClassifier` object that has been calibrated, i.e., 
+        :meth:`.calibrate` has been applied, the p-values for the test 
+        objects are obtained by:
+
+        .. code-block:: python
+
+           p_values = w.predict_p(X_test)
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``w`` is a :class:`.WrapClassifier` object 
+        that has been calibrated with bins, the following provides p-values 
+        for the test set:
+
+        .. code-block:: python
+
+           p_values = w.predict_p(X_test, bins=bins_test)
+        """
+        tic = time.time()
+        alphas = self.nc(self.learner.predict_proba(X))
+        if self.class_cond:
+            p_values = np.array([
+                self.cc.predict_p(alphas,
+                                  np.full(len(X),
+                                          self.learner.classes_[c]))[:, c]
+                for c in range(len(self.learner.classes_))]).T
+        else:
+            p_values = self.cc.predict_p(alphas, bins)
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return p_values
+
+    def predict_set(self, X, bins=None, confidence=0.95, smoothing=False):
+        """
+        Obtain prediction sets using conformal classifier.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features),
+           set of objects
+        bins : array-like of shape (n_samples,), default=None
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        smoothing : bool, default=False
+           use smoothed p-values
+
+        Returns
+        -------
+        prediction sets : ndarray of shape (n_values, n_classes)
+            prediction sets, where the value 1 (0) indicates
+            that the class label is included (excluded), i.e.,
+            the corresponding p-value is less than 1-confidence
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects and ``w`` is a 
+        :class:`.WrapClassifier` object that has been calibrated, i.e., 
+        :meth:`.calibrate` has been applied, the prediction sets for the 
+        test objects at the default confidence level (95%) are obtained by:
+
+        .. code-block:: python
+
+           prediction_sets = w.predict_set(X_test)
+
+        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
+        labels) for the test set and ``w`` is a :class:`.WrapClassifier` object 
+        that has been calibrated with bins, the following provides prediction 
+        sets at the 99% confidence level:
+
+        .. code-block:: python
+
+           prediction_sets = w.predict_set(X_test, bins=bins_test, 
+                                           confidence=0.99)
+
+        Note
+        ----
+        Using smoothed p-values substantially increases computation time and
+        hardly has any effect on the predictions sets, except for when having 
+        small calibration sets.        
+        """
+        tic = time.time()
+        alphas = self.nc(self.learner.predict_proba(X))
+        if self.class_cond:
+            prediction_set = np.array([
+                self.cc.predict_set(alphas,
+                                    np.full(len(X),
+                                            self.learner.classes_[c]),
+                                    confidence, smoothing)[:, c]
+                for c in range(len(self.learner.classes_))]).T
+        else:
+            prediction_set = self.cc.predict_set(alphas, bins, confidence,
+                                                 smoothing)
+        toc = time.time()
+        self.time_predict = toc-tic            
+        return prediction_set
+
+    def evaluate(self, X, y, bins=None, confidence=0.95, smoothing=False,
+                 metrics=None):
+        """
+        Evaluate :class:`.ConformalClassifier`.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+           set of objects
+        y : array-like of shape (n_samples,)
+            correct target values
+        bins : array-like of shape (n_samples,), default=None,
+            Mondrian categories
+        confidence : float in range (0,1), default=0.95
+            confidence level
+        smoothing : bool, default=False
+           use smoothed p-values
+        metrics : a string or a list of strings, 
+                  default=list of all metrics, i.e., ["error", "avg_c", "one_c",
+                  "empty", "time_fit", "time_evaluate"]
+        
+        Returns
+        -------
+        results : dictionary with a key for each selected metric 
+            estimated performance using the metrics, where "error" is the 
+            fraction of prediction sets not containing the true class label,
+            "avg_c" is the average no. of predicted class labels, "one_c" is
+            the fraction of singleton prediction sets, "empty" is the fraction
+            of empty prediction sets, "time_fit" is the time taken to fit the 
+            conformal classifier, and "time_evaluate" is the time taken for the
+            evaluation 
+     
+
+        Examples
+        --------
+        Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
+        vector with true targets, ``bins_test`` is a vector with Mondrian 
+        categories (bin labels) for the test set, and ``w`` is a calibrated 
+        :class:`.WrapClassifier` object, then the latter can be evaluated at 
+        the 90% confidence level with respect to error, average prediction set
+        size and fraction of singleton predictions by:
+
+        .. code-block:: python
+
+           results = w.evaluate(X_test, y_test, bins=bins_test, confidence=0.9,
+                                metrics=["error", "avg_c", "one_c"])
+
+        Note
+        ----
+        The reported result for ``time_fit`` only considers fitting the
+        conformal regressor or predictive system; not for fitting the
+        learner.
+
+        Note
+        ----
+        Using smoothed p-values substantially increases computation time and
+        hardly has any effect on the results, except for when having small 
+        calibration sets.
+        """
+        if not self.calibrated:
+            raise RuntimeError(("evaluate requires that calibrate has been"
+                                "called first"))
+        else:
+            if metrics is None:
+                metrics = ["error", "avg_c", "one_c", "empty", "time_fit",
+                           "time_evaluate"]
+            tic = time.time()
+            prediction_sets = self.predict_set(X, bins, confidence, smoothing)
+            test_results = get_test_results(prediction_sets,
+                                            self.learner.classes_, y, metrics)
+            toc = time.time()
+            self.time_evaluate = toc-tic
+            if "time_fit" in metrics:
+                test_results["time_fit"] = self.cc.time_fit
+            if "time_evaluate" in metrics:
+                test_results["time_evaluate"] = self.time_evaluate
+            return test_results
