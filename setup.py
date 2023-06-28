@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="crepes",
-    version="0.5.1",
+    version="0.6.0",
     author="Henrik Boström",
     author_email="bostromh@kth.se",
-    description="Conformal regressors and predictive systems (crepes)",
+    description="Conformal classifiers, regressors, and predictive systems (crepes)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/henrikbostrom/crepes",

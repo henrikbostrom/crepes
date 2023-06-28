@@ -1,5 +1,19 @@
 # Changelog
 	
+## v0.6.0 (28/06/2023)
+
+### Features
+
+- The classes `ConformalClassifier` and `WrapClassifier` have been added to `crepes`, allowing for generation of standard and Mondrian conformal classifiers, which produce p-values and prediction sets. The `calibrate` method of `WrapClassifier` allows for easily generating class-conditional conformal classifiers and using out-of-bag calibration. See [the documentation](https://crepes.readthedocs.io/en/latest/crepes.html) for the interface to objects of the class through the `calibrate`, `predict_p` and `predict_set` methods, in addition to the `fit`, `predict` and `predict_proba` methods of the wrapped learner. The method `evaluate` allows for evaluating the predictive performance using a set of standard metrics.
+
+- The function `hinge` for computing non-conformity scores for conformal classifiers has been added to `crepes.extras`.	
+	
+### Fixes
+
+- The class `Wrap` has changed name to `WrapRegressor` and the arguments to the `calibrate` method of this class have been changed to be in line with the `calibrate` method of `WrapClassifier`. 	
+
+- The Jupyter notebooks `crepes_nb_wrap.ipynb` and `crepes_nb.ipynb` have been updated and extended
+	
 ## v0.5.1 (22/06/2023)
 
 ### Fix
