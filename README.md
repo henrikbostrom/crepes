@@ -5,8 +5,8 @@
 <a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/conda/vn/conda-forge/crepes" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://anaconda.org/conda-forge/crepes/badges/platforms.svg?dummy=unused" alt="Platforms" height=20 align="center"></a>
 <a href="https://github.com/henrikbostrom/crepes/blob/main/LICENSE"><img src="https://badgen.net/github/license/henrikbostrom/crepes" alt="License" height=20 align="center"></a>
+<a href="https://github.com/henrikbostrom/crepes/blob/main/CHANGELOG.md"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
 </p>
 
 <br>
