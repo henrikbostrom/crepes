@@ -53,8 +53,8 @@ training and a test set using `train_test_split` from
 training set into a proper training set and a calibration set:
 
 ```python
-from crepes import WrapClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
 
 dataset = fetch_openml(name="qsar-biodeg", parser="auto")
 
@@ -72,6 +72,9 @@ training set, and fit a standard conformal classifier through the
 `calibrate` method:
 
 ```python
+from crepes import WrapClassifier
+from sklearn.ensemble import RandomForestClassifier
+
 rf = WrapClassifier(RandomForestClassifier(n_jobs=-1))
 
 rf.fit(X_prop_train, y_prop_train)
