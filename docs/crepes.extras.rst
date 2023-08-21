@@ -5,6 +5,8 @@ The crepes.extras module
 
 .. autofunction:: hinge
 
+.. autofunction:: margin
+
 .. autofunction:: binning	    
    
 .. autoclass:: DifficultyEstimator
