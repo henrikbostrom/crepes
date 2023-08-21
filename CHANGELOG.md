@@ -1,5 +1,19 @@
 # Changelog
 	
+## v0.6.1 (21/08/2023)
+
+### Features
+
+- The function `margin` for computing non-conformity scores for conformal classifiers has been added to `crepes.extras`.
+	
+### Fixes
+
+- Fixed a bug in the `DifficultyEstimator` class (in `crepes.extras`), which caused an error when trying to display a non-fitted object. Thanks to @tuvelofstrom for pointing this out.
+
+- Fixed an error in the documentation for the function `hinge`. 
+	
+- The Jupyter notebooks `crepes_nb_wrap.ipynb` and `crepes_nb.ipynb` have been updated to illustrate the new `margin` function.
+	
 ## v0.6.0 (28/06/2023)
 
 ### Features
