@@ -353,7 +353,7 @@ the bins, which can use later when binning the test objects:
 from crepes.extras import binning
 
 bins_cal, bin_thresholds = binning(sigmas_cal, bins=20)
-rf.calibrate(residuals, bins=bins_cal)
+rf.calibrate(X_cal, y_cal, bins=bins_cal)
 ```
 
 Let us now get the labels of the Mondrian categories for the test
