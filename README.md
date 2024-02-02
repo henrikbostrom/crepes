@@ -1,7 +1,7 @@
 <p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/249577617-1b02cfd0-b856-46bb-9aab-76ae89e64b09.png"></a></p>
 
 <p align="center">
-<a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg" alt="PyPI version" height=20 align="center"></a>
+<a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg?dummy=unused" alt="PyPI version" height=20 align="center"></a>
 <a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.6.2-orange" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
