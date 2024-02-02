@@ -6,7 +6,7 @@ out-of-bag predictions.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2023 Henrik Boström
+Copyright 2024 Henrik Boström
 
 License: BSD 3 clause
 

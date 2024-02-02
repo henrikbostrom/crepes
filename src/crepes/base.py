@@ -8,13 +8,13 @@ guarantees.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2023 Henrik Boström
+Copyright 2024 Henrik Boström
 
 License: BSD 3 clause
 
 """
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 import numpy as np
 import pandas as pd
@@ -1020,7 +1020,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                   "set to y_max")
                     y_max_columns = [no_prec_result_cols+len(lower_percentiles)+i
                                      for i in too_high_indexes]
-                if percentile_indexes == []:
+                if len(percentile_indexes) == 0:
                     percentile_indexes = higher_indexes
                 else:
                     percentile_indexes = np.concatenate((lower_indexes,
@@ -1046,7 +1046,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                               for i in too_high_indexes])
                     else:
                         y_max_columns.append([])
-                if percentile_indexes == []:
+                if len(percentile_indexes) == 0:
                     percentile_indexes = [binned_higher_indexes]
                 else:
                     percentile_indexes.append(binned_higher_indexes)
