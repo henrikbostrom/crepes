@@ -1,5 +1,11 @@
 # Changelog
 	
+## v0.6.2 (02/02/2024)
+	
+### Fixes
+
+- Fixed deprecated code for checking if an array is non-empty in the `ConformalPredictiveSystem` class. Thanks to @tuvelofstrom for pointing this out.
+	
 ## v0.6.1 (21/08/2023)
 
 ### Features
