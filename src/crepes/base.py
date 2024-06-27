@@ -14,14 +14,14 @@ License: BSD 3 clause
 
 """
 
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 import numpy as np
 import pandas as pd
 import time
 import warnings
 
-from crepes.extras import hinge
+from crepes.extras import hinge, MondrianCategorizer
 
 warnings.simplefilter("always", UserWarning)
 
@@ -886,6 +886,8 @@ class ConformalPredictiveSystem(ConformalPredictor):
         if no_result_columns > 0:
             result = np.zeros((len(y_hat),no_result_columns))
         if y is not None:
+            if isinstance(y, pd.Series):
+                y = y.values
             no_prec_result_cols += 1
             gammas = np.random.rand(len(y_hat))
             if isinstance(y, (int, float, np.integer, np.floating)):
@@ -915,7 +917,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                     (y_hat[i]+bin_alphas[b])<y)) \
                                   + gammas[i])/(len(bin_alphas[b])+1)
                                  for i in bin_indexes[b]])
-            elif type(y) in [list, np.ndarray] and len(y) == len(y_hat):
+            elif isinstance(y, (list, np.ndarray)) and len(y) == len(y_hat):
                 if not self.mondrian:
                     if self.normalized:
                         result[:,0] = np.array(
@@ -1225,7 +1227,10 @@ class ConformalPredictiveSystem(ConformalPredictor):
         employed; for the latter, this number is reduced by increasing the number 
         of bins.
         """
-
+        if isinstance(y, pd.Series):
+            y = y.values
+        if isinstance(y_hat, pd.Series):
+            y_hat = y_hat.values
         tic = time.time()
         test_results = {}
         lower_percentile = (1-confidence)/2*100
@@ -1373,7 +1378,9 @@ class WrapRegressor():
         self.cps = None
         self.calibrated = False
         self.learner = learner
-
+        self.de = None
+        self.mc = None
+        
     def __repr__(self):
         if self.calibrated:
             if self.cr is not None:
@@ -1429,6 +1436,8 @@ class WrapRegressor():
         All arguments, including any additional keyword arguments, to 
         :meth:`.fit` are forwarded to the ``fit`` method of the learner.        
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         self.learner.fit(X, y, **kwargs)
     
         
@@ -1465,7 +1474,7 @@ class WrapRegressor():
         """
         return self.learner.predict(X)
 
-    def calibrate(self, X, y, sigmas=None, bins=None, oob=False, cps=False):
+    def calibrate(self, X, y, de=None, mc=None, oob=False, cps=False):
         """
         Fit a :class:`.ConformalRegressor` or 
         :class:`.ConformalPredictiveSystem` using learner.
@@ -1476,10 +1485,10 @@ class WrapRegressor():
            set of objects
         y : array-like of shape (n_samples,),
             target values
-        sigmas: array-like of shape (n_samples,), default=None
-            difficulty estimates
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
+        de: :class:`crepes.extras.DifficultyEstimator`, default=None
+            object used for computing difficulty estimates
+        mc: function or :class:`crepes.extras.MondrianCategorizer`, default=None
+            function or :class:`crepes.extras.MondrianCategorizer` for computing Mondrian categories
         oob : bool, default=False
            use out-of-bag estimation
         cps : bool, default=False
@@ -1503,26 +1512,26 @@ class WrapRegressor():
 
            w.calibrate(X_cal, y_cal) 
 
-        Assuming that ``sigmas_cal`` is a vector with difficulty estimates,
+        Assuming that ``de`` is a fitted difficulty estimator,
         a normalized conformal regressor is obtained by: 
 
         .. code-block:: python
 
-           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal)
+           w.calibrate(X_cal, y_cal, de=de)
 
-        Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
-        labels), a Mondrian conformal regressor is obtained by:
+        Assuming that ``get_categories`` is a function that returns categories
+        (bin labels), a Mondrian conformal regressor is obtained by:
 
         .. code-block:: python
 
-           w.calibrate(X_cal, y_cal, bins=bins_cal)
+           w.calibrate(X_cal, y_cal, mc=get_categories)
 
         A normalized Mondrian conformal regressor is generated in the
         following way:
 
         .. code-block:: python
 
-           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal, bins=bins_cal)
+           w.calibrate(X_cal, y_cal, de=de, mc=get_categories)
 
         By providing the option ``oob=True``, the conformal regressor
         will be calibrating using out-of-bag predictions, allowing
@@ -1538,7 +1547,7 @@ class WrapRegressor():
 
         .. code-block:: python
 
-           w.calibrate(X_cal, y_cal, sigmas=sigmas_cal, cps=True)
+           w.calibrate(X_cal, y_cal, de=de, cps=True)
 
         Note
         ----
@@ -1554,10 +1563,24 @@ class WrapRegressor():
         (inductive) conformal regressors and predictive systems, due to that
         calibration and test instances are not handled in exactly the same way.
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         if oob:
             residuals = y - self.learner.oob_prediction_
         else:
             residuals = y - self.predict(X)
+        if de is None:
+            sigmas = None
+        else:
+            sigmas = de.apply(X)
+        self.de = de
+        if mc is None:
+            bins = None
+        elif isinstance(mc, MondrianCategorizer):
+            bins = mc.apply(X)
+        else:
+            bins = mc(X)
+        self.mc = mc
         if not cps:
             self.cr = ConformalRegressor()
             self.cr.fit(residuals, sigmas=sigmas, bins=bins)
@@ -1569,8 +1592,7 @@ class WrapRegressor():
         self.calibrated = True
         return self
 
-    def predict_int(self, X, sigmas=None, bins=None, confidence=0.95,
-                    y_min=-np.inf, y_max=np.inf):
+    def predict_int(self, X, confidence=0.95, y_min=-np.inf, y_max=np.inf):
         """
         Predict interval using fitted :class:`.ConformalRegressor` or
         :class:`.ConformalPredictiveSystem`.
@@ -1579,10 +1601,6 @@ class WrapRegressor():
         ----------
         X : array-like of shape (n_samples, n_features),
            set of objects
-        sigmas : array-like of shape (n_samples,), default=None
-            difficulty estimates
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
         confidence : float in range (0,1), default=0.95
             confidence level
         y_min : float or int, default=-numpy.inf
@@ -1606,48 +1624,34 @@ class WrapRegressor():
 
            intervals = w.predict_int(X_test, confidence=0.99)
 
-        Assuming that ``sigmas_test`` is a vector with difficulty estimates for
-        the test set and ``w`` is a :class:`.WrapRegressor` object that has been 
-        calibrated with both residuals and difficulty estimates, prediction
-        intervals at the default (95%) confidence level can be obtained by:
+        The following provides prediction intervals at the default confidence 
+        level (95%), where the intervals are lower-bounded by 0:
 
         .. code-block:: python
 
-           intervals = w.predict_int(X_test, sigmas=sigmas_test)
-
-        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
-        labels) for the test set and ``w`` is a :class:`.WrapRegressor` object 
-        that has been calibrated with both residuals and bins, the following 
-        provides prediction intervals at the default confidence level, where the
-        intervals are lower-bounded by 0:
-
-        .. code-block:: python
-
-           intervals = w.predict_int(X_test, bins=bins_test, y_min=0)
+           intervals = w.predict_int(X_test, y_min=0)
 
         Note
         ----
         In case the specified confidence level is too high in relation to the 
         size of the calibration set, a warning will be issued and the output
         intervals will be of maximum size.
-
-        Note
-        ----
-        Note that ``sigmas`` and ``bins`` will be ignored by 
-        :meth:`.predict_int`, if the :class:`.WrapRegressor` object has been 
-        calibrated without specifying any such values.
-
-        Note
-        ----
-        Note that an error will be reported if ``sigmas`` and ``bins`` are not
-        provided to :meth:`.predict_int`, if the :class:`.WrapRegressor` object 
-        has been calibrated with such values.
         """
         if not self.calibrated:
             raise RuntimeError(("predict_int requires that calibrate has been"
                                 "called first"))
         else:
             y_hat = self.learner.predict(X)
+            if self.de is None:
+                sigmas = None
+            else:
+                sigmas = self.de.apply(X)
+            if self.mc is None:
+                bins = None
+            elif isinstance(self.mc, MondrianCategorizer):
+                bins = self.mc.apply(X)
+            else:
+                bins = self.mc(X)
             if self.cr is not None:
                 return self.cr.predict(y_hat, sigmas=sigmas, bins=bins,
                                        confidence=confidence,
@@ -1660,7 +1664,7 @@ class WrapRegressor():
                                         higher_percentiles=higher_percentile,
                                         y_min=y_min, y_max=y_max)
 
-    def predict_cps(self, X, sigmas=None, bins=None, y=None, lower_percentiles=None,
+    def predict_cps(self, X, y=None, lower_percentiles=None,
                     higher_percentiles=None, y_min=-np.inf, y_max=np.inf,
                     return_cpds=False, cpds_by_bins=False):
         """
@@ -1670,10 +1674,6 @@ class WrapRegressor():
         ----------
         X : array-like of shape (n_samples, n_features),
            set of objects
-        sigmas : array-like of shape (n_samples,), default=None
-            difficulty estimates
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
         y : float, int or array-like of shape (n_samples,), default=None
             values for which p-values should be returned
         lower_percentiles : array-like of shape (l_values,), default=None
@@ -1706,13 +1706,13 @@ class WrapRegressor():
         cpds : ndarray of (n_samples, c_values), ndarray of (n_samples,)
                or list of ndarrays
             conformal predictive distributions. Only returned if 
-            return_cpds == True. If bins is None, the distributions are
-            represented by a single array, where the number of columns
-            (c_values) is determined by the number of residuals of the fitted
-            conformal predictive system. Otherwise, the distributions
-            are represented by a vector of arrays, if cpds_by_bins = False,
-            or a list of arrays, with one element for each bin, if 
-            cpds_by_bins = True.
+            return_cpds == True. For non-Mondrian conformal predictive systems,
+            the distributions are represented by a single array, where the 
+            number of columns (c_values) is determined by the number of 
+            residuals of the fitted conformal predictive system. For Mondrian
+            conformal predictive systems, the distributions are represented by
+            a vector of arrays, if cpds_by_bins = False, or a list of arrays, 
+            with one element for each Mondrian category, if cpds_by_bins = True.
 
         Examples
         --------
@@ -1732,14 +1732,11 @@ class WrapRegressor():
 
            p_values = w.predict_cps(X_test, y=37)
 
-        Assuming that ``sigmas_test`` is a vector with difficulty estimates for
-        the test set and ``w`` has been calibrated with such estimates, 
-        the 90th and 95th percentiles can be obtained by:
+        The 90th and 95th percentiles can be obtained by:
 
         .. code-block:: python
 
-           percentiles = w.predict_cps(X_test, sigmas=sigmas_test,
-                                       higher_percentiles=[90,95])
+           percentiles = w.predict_cps(X_test, higher_percentiles=[90,95])
 
         In the above example, the nearest higher value is returned, if there is
         no value that corresponds exactly to the requested percentile. If we
@@ -1748,17 +1745,14 @@ class WrapRegressor():
 
         .. code-block:: python
 
-           percentiles = w.predict_cps(X_test, sigmas=sigmas_test,
-                                       lower_percentiles=[90,95])
+           percentiles = w.predict_cps(X_test, lower_percentiles=[90,95])
 
-        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
-        labels) for the test set and ``w`` has been calibrated with bins,
-        the following returns prediction intervals at the 95% confidence level,
+        The following returns prediction intervals at the 95% confidence level,
         where the intervals are lower-bounded by 0:
 
         .. code-block:: python
 
-           intervals = w.predict_cps(X_test, bins=bins_test,
+           intervals = w.predict_cps(X_test,
                                      lower_percentiles=2.5,
                                      higher_percentiles=97.5,
                                      y_min=0)
@@ -1768,7 +1762,7 @@ class WrapRegressor():
 
         .. code-block:: python
 
-           cpds = w.predict_cps(X_test, sigmas=sigmas_test, return_cpds=True)
+           cpds = w.predict_cps(X_test, return_cpds=True)
 
         The output of the above will be an array with a row for each test
         instance and a column for each calibration instance (residual).
@@ -1780,8 +1774,7 @@ class WrapRegressor():
 
         .. code-block:: python
 
-           cpds = w.predict_cps(X_test, sigmas=sigmas_test, return_cpds=True, 
-                                cpds_by_bins=True)
+           cpds = w.predict_cps(X_test, return_cpds=True, cpds_by_bins=True)
 
         Note
         ----
@@ -1807,11 +1800,23 @@ class WrapRegressor():
         Setting ``cpds_by_bins=True`` has an effect only for Mondrian conformal 
         predictive systems.
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         if self.cps is None:
             raise RuntimeError(("predict_cps requires that calibrate has been"
                                 "called first with cps=True"))
         else:
             y_hat = self.learner.predict(X)
+            if self.de is None:
+                sigmas = None
+            else:
+                sigmas = self.de.apply(X)
+            if self.mc is None:
+                bins = None
+            elif isinstance(self.mc, MondrianCategorizer):
+                bins = self.mc.apply(X)
+            else:
+                bins = self.mc(X)
             return self.cps.predict(y_hat, sigmas=sigmas, bins=bins,
                                     y=y, lower_percentiles=lower_percentiles,
                                     higher_percentiles=higher_percentiles,
@@ -1819,7 +1824,7 @@ class WrapRegressor():
                                     return_cpds=return_cpds,
                                     cpds_by_bins=cpds_by_bins)
 
-    def evaluate(self, X, y, sigmas=None, bins=None, confidence=0.95,
+    def evaluate(self, X, y, confidence=0.95,
                  y_min=-np.inf, y_max=np.inf, metrics=None):
         """
         Evaluate :class:`.ConformalRegressor` or 
@@ -1831,10 +1836,6 @@ class WrapRegressor():
            set of objects
         y : array-like of shape (n_samples,)
             correct target values
-        sigmas : array-like of shape (n_samples,), default=None,
-            difficulty estimates
-        bins : array-like of shape (n_samples,), default=None,
-            Mondrian categories
         confidence : float in range (0,1), default=0.95
             confidence level
         y_min : float or int, default=-numpy.inf
@@ -1855,16 +1856,14 @@ class WrapRegressor():
         Examples
         --------
         Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
-        vector with true targets, ``sigmas_test`` and ``bins_test`` are
-        vectors with difficulty estimates and Mondrian categories (bin labels) 
-        for the test set, and ``w`` is a calibrated :class:`.WrapRegressor`
-        object, then the latter can be evaluated at the 90% confidence level 
-        with respect to error, mean and median efficiency (interval size) by:
+        vector with true targets, and ``w`` is a calibrated 
+        :class:`.WrapRegressor` object, then the latter can be evaluated at 
+        the 90% confidence level with respect to error, mean and median 
+        efficiency (interval size) by:
 
         .. code-block:: python
 
-           results = w.evaluate(X_test, y_test, sigmas=sigmas_test, 
-                                bins=bins_test, confidence=0.9,
+           results = w.evaluate(X_test, y_test, confidence=0.9,
                                 metrics=["error", "eff_mean", "eff_med"])
 
         Note
@@ -1880,7 +1879,7 @@ class WrapRegressor():
         is generated for which the number of elements is the product of the 
         number of calibration and test objects, unless a Mondrian approach is 
         employed; for the latter, this number is reduced by increasing the number 
-        of bins.
+        of categories.
 
         Note
         ----
@@ -1888,11 +1887,23 @@ class WrapRegressor():
         conformal regressor or predictive system; not for fitting the
         learner.
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         if not self.calibrated:
             raise RuntimeError(("evaluate requires that calibrate has been"
                                 "called first"))
         else:
             y_hat = self.learner.predict(X)
+            if self.de is None:
+                sigmas = None
+            else:
+                sigmas = self.de.apply(X)
+            if self.mc is None:
+                bins = None
+            elif isinstance(self.mc, MondrianCategorizer):
+                bins = self.mc.apply(X)
+            else:
+                bins = self.mc(X)
             if self.cr is not None:
                 return self.cr.evaluate(y_hat, y, sigmas=sigmas,
                                         bins=bins, confidence=confidence,
@@ -1963,6 +1974,8 @@ class WrapClassifier():
         All arguments, including any additional keyword arguments, to 
         :meth:`.fit` are forwarded to the ``fit`` method of the learner.        
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         self.learner.fit(X, y, **kwargs)
     
         
@@ -1973,7 +1986,7 @@ class WrapClassifier():
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features),
-           set of objects
+            set of objects
 
         Returns
         -------
@@ -2034,7 +2047,7 @@ class WrapClassifier():
         """
         return self.learner.predict_proba(X)
     
-    def calibrate(self, X, y, bins=None, oob=False, class_cond=False, nc=hinge):
+    def calibrate(self, X, y, oob=False, class_cond=False, nc=hinge, mc=None):
         """
         Fit a :class:`.ConformalClassifier` using learner.
 
@@ -2044,8 +2057,6 @@ class WrapClassifier():
            set of objects
         y : array-like of shape (n_samples,),
             target values
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
         oob : bool, default=False
            use out-of-bag estimation
         class_cond : bool, default=False
@@ -2054,6 +2065,9 @@ class WrapClassifier():
             labels as categories
         nc : function, default = :func:`crepes.extras.hinge`
             function to compute non-conformity scores
+        mc: function or :class:`crepes.extras.MondrianCategorizer`, default=None
+            function or :class:`crepes.extras.MondrianCategorizer` for computing Mondrian 
+            categories
 
         Returns
         -------
@@ -2071,12 +2085,13 @@ class WrapClassifier():
 
            w.calibrate(X_cal, y_cal) 
 
-        Assuming that ``bins_cals`` is a vector with Mondrian categories (bin
-        labels), a Mondrian conformal classifier can be generated by:
+        Assuming that ``get_categories`` is a function that returns a vector of
+        Mondrian categories (bin labels), a Mondrian conformal classifier can
+        be generated by:
 
         .. code-block:: python
 
-           w.calibrate(X_cal, y_cal, bins=bins_cal)
+           w.calibrate(X_cal, y_cal, mc=get_categories)
 
         By providing the option ``oob=True``, the conformal classifier
         will be calibrating using out-of-bag predictions, allowing
@@ -2096,7 +2111,7 @@ class WrapClassifier():
 
         Note
         ----
-        Any Mondrian categories provided with the ``bins`` argument will be 
+        Any Mondrian categorizer specified by the ``mc`` argument will be 
         ignored by :meth:`.calibrate`, if ``class_cond=True``, as the latter 
         implies that Mondrian categories are formed using the labels in ``y``. 
 
@@ -2114,8 +2129,11 @@ class WrapClassifier():
         conformal classifiers, due to that calibration and test instances are not
         handled in exactly the same way.
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         self.cc = ConformalClassifier()
         self.nc = nc
+        self.mc = mc
         self.class_cond = class_cond
         if oob:
             alphas = nc(self.learner.oob_decision_function_, self.learner.classes_, y)
@@ -2124,11 +2142,18 @@ class WrapClassifier():
         if class_cond:
             self.cc.fit(alphas, bins=y)
         else:
-            self.cc.fit(alphas, bins=bins)
+            if isinstance(mc, MondrianCategorizer):
+                bins = mc.apply(X)
+                self.cc.fit(alphas, bins=bins)
+            elif mc is not None:
+                bins = mc(X)
+                self.cc.fit(alphas, bins=bins)
+            else:
+                self.cc.fit(alphas)
         self.calibrated = True
         return self
 
-    def predict_p(self, X, bins=None):
+    def predict_p(self, X):
         """
         Obtain (smoothed) p-values using conformal classifier.
 
@@ -2136,8 +2161,6 @@ class WrapClassifier():
         ----------
         X : array-like of shape (n_samples, n_features),
            set of objects
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
 
         Returns
         -------
@@ -2154,15 +2177,6 @@ class WrapClassifier():
         .. code-block:: python
 
            p_values = w.predict_p(X_test)
-
-        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
-        labels) for the test set and ``w`` is a :class:`.WrapClassifier` object 
-        that has been calibrated with bins, the following provides p-values 
-        for the test set:
-
-        .. code-block:: python
-
-           p_values = w.predict_p(X_test, bins=bins_test)
         """
         tic = time.time()
         alphas = self.nc(self.learner.predict_proba(X))
@@ -2173,12 +2187,19 @@ class WrapClassifier():
                                           self.learner.classes_[c]))[:, c]
                 for c in range(len(self.learner.classes_))]).T
         else:
-            p_values = self.cc.predict_p(alphas, bins)
+            if isinstance(self.mc, MondrianCategorizer):
+                bins = self.mc.apply(X)
+                p_values = self.cc.predict_p(alphas, bins)
+            elif self.mc is not None:
+                bins = self.mc(X)
+                p_values = self.cc.predict_p(alphas, bins)
+            else:
+                p_values = self.cc.predict_p(alphas)
         toc = time.time()
         self.time_predict = toc-tic            
         return p_values
 
-    def predict_set(self, X, bins=None, confidence=0.95, smoothing=False):
+    def predict_set(self, X, confidence=0.95, smoothing=False):
         """
         Obtain prediction sets using conformal classifier.
 
@@ -2186,8 +2207,6 @@ class WrapClassifier():
         ----------
         X : array-like of shape (n_samples, n_features),
            set of objects
-        bins : array-like of shape (n_samples,), default=None
-            Mondrian categories
         confidence : float in range (0,1), default=0.95
             confidence level
         smoothing : bool, default=False
@@ -2205,21 +2224,11 @@ class WrapClassifier():
         Assuming that ``X_test`` is a set of test objects and ``w`` is a 
         :class:`.WrapClassifier` object that has been calibrated, i.e., 
         :meth:`.calibrate` has been applied, the prediction sets for the 
-        test objects at the default confidence level (95%) are obtained by:
+        test objects at the 99% confidence level are obtained by:
 
         .. code-block:: python
 
-           prediction_sets = w.predict_set(X_test)
-
-        Assuming that ``bins_test`` is a vector with Mondrian categories (bin 
-        labels) for the test set and ``w`` is a :class:`.WrapClassifier` object 
-        that has been calibrated with bins, the following provides prediction 
-        sets at the 99% confidence level:
-
-        .. code-block:: python
-
-           prediction_sets = w.predict_set(X_test, bins=bins_test, 
-                                           confidence=0.99)
+           prediction_sets = w.predict_set(X_test, confidence=0.99)
 
         Note
         ----
@@ -2237,13 +2246,19 @@ class WrapClassifier():
                                     confidence, smoothing)[:, c]
                 for c in range(len(self.learner.classes_))]).T
         else:
+            if isinstance(self.mc, MondrianCategorizer):
+                bins = self.mc.apply(X)
+            elif self.mc is not None:
+                bins = self.mc(X)
+            else:
+                bins = None
             prediction_set = self.cc.predict_set(alphas, bins, confidence,
                                                  smoothing)
         toc = time.time()
         self.time_predict = toc-tic            
         return prediction_set
 
-    def evaluate(self, X, y, bins=None, confidence=0.95, smoothing=False,
+    def evaluate(self, X, y, confidence=0.95, smoothing=False,
                  metrics=None):
         """
         Evaluate :class:`.ConformalClassifier`.
@@ -2254,8 +2269,6 @@ class WrapClassifier():
            set of objects
         y : array-like of shape (n_samples,)
             correct target values
-        bins : array-like of shape (n_samples,), default=None,
-            Mondrian categories
         confidence : float in range (0,1), default=0.95
             confidence level
         smoothing : bool, default=False
@@ -2279,15 +2292,14 @@ class WrapClassifier():
         Examples
         --------
         Assuming that ``X_test`` is a set of test objects, ``y_test`` is a 
-        vector with true targets, ``bins_test`` is a vector with Mondrian 
-        categories (bin labels) for the test set, and ``w`` is a calibrated 
+        vector with true targets, and ``w`` is a calibrated 
         :class:`.WrapClassifier` object, then the latter can be evaluated at 
         the 90% confidence level with respect to error, average prediction set
         size and fraction of singleton predictions by:
 
         .. code-block:: python
 
-           results = w.evaluate(X_test, y_test, bins=bins_test, confidence=0.9,
+           results = w.evaluate(X_test, y_test, confidence=0.9,
                                 metrics=["error", "avg_c", "one_c"])
 
         Note
@@ -2302,6 +2314,8 @@ class WrapClassifier():
         hardly has any effect on the results, except for when having small 
         calibration sets.
         """
+        if isinstance(y, pd.Series):
+            y = y.values
         if not self.calibrated:
             raise RuntimeError(("evaluate requires that calibrate has been"
                                 "called first"))
@@ -2310,7 +2324,7 @@ class WrapClassifier():
                 metrics = ["error", "avg_c", "one_c", "empty", "time_fit",
                            "time_evaluate"]
             tic = time.time()
-            prediction_sets = self.predict_set(X, bins, confidence, smoothing)
+            prediction_sets = self.predict_set(X, confidence, smoothing)
             test_results = get_test_results(prediction_sets,
                                             self.learner.classes_, y, metrics)
             toc = time.time()
