@@ -36,7 +36,7 @@ pip install crepes
 From [conda-forge](https://anaconda.org/conda-forge/crepes)
 
 ```bash
-conda install -c conda-forge crepes
+conda install conda-forge::crepes
 ```
 
 ## Documentation
