@@ -11,7 +11,10 @@ The crepes.extras module
    
 .. autoclass:: DifficultyEstimator
    :members:
-		  
+
+.. autoclass:: MondrianCategorizer
+   :members:
+
 
 
 

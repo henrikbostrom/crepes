@@ -21,10 +21,10 @@ copyright = '2024, Henrik Boström'
 author = 'Henrik Boström'
 
 # The short X.Y version
-version = '0.6.2'
+version = '0.7.0'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.2'
+release = '0.7.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -75,8 +75,9 @@ html_theme_options = {
     "github_url": "https://github.com/henrikbostrom/crepes"
 }
 
-
-html_sidebars = {}
+html_sidebars = {
+    '**': []
+}
 
 html_context = {
     "default_mode": "light",
