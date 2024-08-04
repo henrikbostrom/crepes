@@ -1,11 +1,11 @@
 <p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github-production-user-asset-6210df.s3.amazonaws.com/7838741/249577617-1b02cfd0-b856-46bb-9aab-76ae89e64b09.png"></a></p>
 
 <p align="center">
-<a href="https://pypi.org/project/crepes/"><img src="https://badge.fury.io/py/crepes.svg" alt="PyPI version" height=20 align="center"></a>
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/conda/vn/conda-forge/crepes" alt="conda-forge version" height=20 align="center"></a>
+<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.7.0-brightgreen" alt="PyPI version" height=20 align="center"></a>
+<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.7.0-orange" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
-<a href="https://github.com/henrikbostrom/crepes/blob/main/LICENSE"><img src="https://badgen.net/github/license/henrikbostrom/crepes" alt="License" height=20 align="center"></a>
+<a href="https://github.com/henrikbostrom/crepes/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSD--3--clause-blue" alt="License" height=20 align="center"></a>
 <a href="https://github.com/henrikbostrom/crepes/blob/main/CHANGELOG.md"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
 </p>
 
@@ -36,7 +36,7 @@ pip install crepes
 From [conda-forge](https://anaconda.org/conda-forge/crepes)
 
 ```bash
-conda install -c conda-forge crepes
+conda install conda-forge::crepes
 ```
 
 ## Documentation
@@ -90,13 +90,13 @@ rf.predict_p(X_test)
 ```
 
 ```numpy
-array([[0.46552707, 0.04407598],
-       [0.00382577, 0.85400826],
-       [0.64930738, 0.00804963],
+array([[0.00427104, 0.74842304],
+       [0.07874355, 0.2950549 ],
+       [0.50529983, 0.01557963],
        ...,
-       [0.33376105, 0.04065675],
-       [0.16968437, 0.12810237],
-       [0.02346899, 0.49634959]])
+       [0.8413356 , 0.00201167],
+       [0.84402215, 0.00654927],
+       [0.29601955, 0.07766093]])
 ```
 
 We can also get prediction sets, represented by binary vectors
@@ -108,60 +108,89 @@ rf.predict_set(X_test, confidence=0.9)
 ```
 
 ```numpy
-array([[1, 0],
+array([[0, 1],
        [0, 1],
        [1, 0],
        ...,
        [1, 0],
-       [1, 1],
-       [0, 1]])
+       [1, 0],
+       [1, 0]])
 ```
 
 Since we have access to the true class labels, we can evaluate the
 conformal classifier (here using all available metrics which is the
-default):
+default), at the 99% confidence level:
 
 ```python
-rf.evaluate(X_test, y_test, confidence=0.9)
+rf.evaluate(X_test, y_test, confidence=0.99)
 ```
 
 ```python
-{'error': 0.11553030303030298,
- 'avg_c': 1.0776515151515151,
- 'one_c': 0.9223484848484849,
+{'error': 0.005681818181818232,
+ 'avg_c': 1.691287878787879,
+ 'one_c': 0.3087121212121212,
  'empty': 0.0,
- 'time_fit': 2.7418136596679688e-05,
- 'time_evaluate': 0.01745915412902832}
+ 'time_fit': 2.3365020751953125e-05,
+ 'time_evaluate': 0.017678260803222656}
 ```
 
 To control the error level across different groups of objects of
-interest, we may use so-called Mondrian conformal classifiers.  A
-Mondrian conformal classifier is formed by providing the names of the
-categories as an additional argument, named `bins`, for the
-`calibrate` method.
+interest, we may use so-called Mondrian conformal classifiers. A
+Mondrian conformal classifier if formed by providing a function or a
+`MondrianCategorizer` (defined in `crepes.extras`) as an additional
+argument, named `mc`, for the `calibrate` method.
 
-Here we consider two categories formed by whether the third column (number of heavy atoms) equals zero or not:
+For illustration, we will use the predicted labels of the underlying
+model to form the categories. Note that the prediction sets are generated
+for the test objects using the same categorization (under the hood).
 
 ```python
-bins_cal = X_cal[:,2] == 0
-
 rf_mond = WrapClassifier(rf.learner)
 
-rf_mond.calibrate(X_cal, y_cal, bins=bins_cal)
+rf_mond.calibrate(X_cal, y_cal, mc=rf_mond.predict)
 
-bins_test = X_test[:,2] == 0
-
-rf_mond.predict_set(X_test, bins=bins_test)
+rf_mond.predict_set(X_test)
 ```
 
 ```numpy
-array([[1, 0],
-       [0, 1],
+array([[0, 1],
+       [1, 1],
        [1, 0],
        ...,
+       [1, 0],
+       [1, 0],
+       [1, 1]])
+```
+
+We may also form the categories using a `MondrianCategorizer`, which
+may be fitted in several different ways. Below we show how to form
+categories by (equal-sized) binning of the first feature value, using
+five bins (instead of the default which is 10); note that we need
+objects to get the threshold values for the categories (bins). 
+
+```python
+from crepes.extras import MondrianCategorizer
+
+def get_values(X):
+    return X[:,0]
+
+mc = MondrianCategorizer()
+mc.fit(X_cal, f=get_values, no_bins=5)
+
+rf_mond = WrapClassifier(rf.learner)
+rf_mond.calibrate(X_cal, y_cal, mc=mc)
+
+rf_mond.predict_set(X_test)
+```
+
+```numpy
+array([[0, 1],
        [1, 1],
-       [1, 1],
-       [0, 1]])
+       [1, 0],
+       ...,
+       [1, 0],
+       [1, 0],
+       [1, 1]])
 ```
 
 For conformal classifiers that employ learners that use bagging, like
@@ -187,16 +216,16 @@ rf.fit(X_train, y_train)
 
 rf.calibrate(X_train, y_train, class_cond=True, oob=True)
 
-rf.evaluate(X_test, y_test, confidence=0.99)
+rf.evaluate(X_test, y_test, confidence=0.9)
 ```
 
 ```python
-{'error': 0.009469696969697017,
- 'avg_c': 1.696969696969697,
- 'one_c': 0.30303030303030304,
+{'error': 0.10795454545454541,
+ 'avg_c': 1.0984848484848484,
+ 'one_c': 0.9015151515151515,
  'empty': 0.0,
- 'time_fit': 0.0002560615539550781,
- 'time_evaluate': 0.06656742095947266}
+ 'time_fit': 0.0001518726348876953,
+ 'time_evaluate': 0.06513118743896484}
 ```
 
 Let us also illustrate how `crepes` can be used to generate conformal
@@ -247,13 +276,13 @@ rf.predict_int(X_test, confidence=0.99)
 ```
 
 ```numpy
-array([[-171902.2 ,  953866.2 ],
-       [-276818.01,  848950.39],
-       [  22679.37, 1148447.77],
+array([[   8260.53, 1065083.53],
+       [ -54858.5 , 1001964.5 ],
+       [  -7779.25, 1049043.75],
        ...,
-       [ 242954.02, 1368722.42],
-       [-308093.73,  817674.67],
-       [-227057.4 ,  898711.  ]])
+       [ 297229.8 , 1354052.8 ],
+       [-270260.  ,  786563.  ],
+       [-185146.94,  871676.06]])
 ```
 
 The output is a [NumPy](https://numpy.org) array with a row for each
@@ -269,13 +298,13 @@ rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 152258.55,  629705.45],
-       [  47342.74,  524789.64],
-       [ 346840.12,  824287.02],
+array([[ 288602.83,  784741.23],
+       [ 225483.8 ,  721622.2 ],
+       [ 272563.05,  768701.45],
        ...,
-       [ 567114.77, 1044561.67],
-       [  16067.02,  493513.92],
-       [  97103.35,  574550.25]])
+       [ 577572.1 , 1073710.5 ],
+       [  10082.3 ,  506220.7 ],
+       [  95195.36,  591333.76]])
 ```
 
 The above intervals are not normalized, i.e., they are all of the same
@@ -291,7 +320,9 @@ value (beta) is added to the estimates, which may be given through an
 argument to the function; below we just use the default, i.e.,
 `beta=0.01`.
 
-We first obtain the difficulty estimates for the calibration set:
+We first fit the difficulty estimator and then calibrate the conformal
+regressor, using the calibration objects and labels together the
+difficulty estimator:
 
 ```python
 from crepes.extras import DifficultyEstimator
@@ -299,32 +330,25 @@ from crepes.extras import DifficultyEstimator
 de = DifficultyEstimator()
 de.fit(X_prop_train, y=y_prop_train)
 
-sigmas_cal = de.apply(X_cal)
+rf.calibrate(X_cal, y_cal, de=de)
 ```
 
-These can now be used for the calibration, which will produce a
-normalized conformal regressor:
+To obtain prediction intervals, we just have to provide test objects
+to the `predict_int` method, as the difficulty estimates will be
+computed by the incorporated difficulty estimator:
 
 ```python
-rf.calibrate(X_cal, y_cal, sigmas=sigmas_cal)
-```
-
-We need difficulty estimates for the test set too, which we provide as
-input to `predict_int`:
-
-```python
-sigmas_test = de.apply(X_test)
-rf.predict_int(X_test, sigmas=sigmas_test, y_min=0)
+rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 226719.06607977,  555244.93392023],
-       [ 173767.90753715,  398364.47246285],
-       [ 124690.70166966, 1046436.43833034],
+array([[ 222036.82862012,  851307.23137988],
+       [ 316413.83821721,  630692.16178279],
+       [ 384784.44135415,  656480.05864585],
        ...,
-       [ 607949.71540572, 1003726.72459428],
-       [ 188671.3752278 ,  320909.5647722 ],
-       [ 145340.39076824,  526313.20923176]])
+       [ 110527.74801848, 1540754.85198152],
+       [ 174799.94131735,  341503.05868265],
+       [ 274305.55734858,  412223.56265142]])
 ```
 
 Depending on the employed difficulty estimator, the normalized
@@ -340,38 +364,39 @@ more uniformly distributed interval sizes.
 A Mondrian conformal regressor can be used to address these problems,
 by dividing the object space into non-overlapping so-called Mondrian
 categories, and forming a (standard) conformal regressor for each
-category. The category membership of the objects can be provided as an
-additional argument, named `bins`, for the `fit` method.
+category. We may form a Mondrian conformal regressor by providing a
+function or a `MondrianCategorizer` (defined in `crepes.extras`) as an
+additional argument, named `mc`, for the `calibrate` method.
 
-Here we use the helper function `binning` from `crepes.extras` to form
-Mondrian categories by equal-sized binning of the difficulty
-estimates; the function returns labels for the calibration objects the
-we provide as input to the calibration, and we also get thresholds for
-the bins, which can use later when binning the test objects:
+Here we employ a `MondrianCategorizer`; it may be fitted in several
+different ways, and below we show how to form categories by binning of
+the difficulty estimates into 20 bins, using the difficulty estimator
+fitted above.
 
 ```python
-from crepes.extras import binning
+from crepes.extras import MondrianCategorizer
 
-bins_cal, bin_thresholds = binning(sigmas_cal, bins=20)
-rf.calibrate(residuals, bins=bins_cal)
+mc_diff = MondrianCategorizer()
+mc_diff.fit(X_cal, de=de, no_bins=20)
+
+rf.calibrate(X_cal, y_cal, mc=mc_diff)
 ```
 
-Let us now get the labels of the Mondrian categories for the test
-objects and use them when predicting intervals:
+When making predictions, the test objects will be assigned to Mondrian categories
+according to the incorporated `MondrianCategorizer` (or labeling function):
 
 ```python
-bins_test = binning(sigmas_test, bins=bin_thresholds)
-rf.predict_int(X_test, bins=bins_test, y_min=0)
+rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 206379.7 ,  575584.3 ],
-       [ 144014.65,  428117.73],
-       [  17965.57, 1153161.57],
+array([[ 242624.89,  830719.17],
+       [ 329358.5 ,  617747.5 ],
+       [ 371028.  ,  670236.5 ],
        ...,
-       [ 653865.22,  957811.22],
-       [ 174264.87,  335316.07],
-       [ 140587.46,  531066.14]])
+       [      0.  , 1730501.3 ],
+       [ 157022.53,  359280.47],
+       [ 266456.61,  420072.51]])
 ```
 
 We could very easily switch from conformal regressors to conformal
@@ -385,43 +410,45 @@ Well, there is only one thing above that changes: just provide
 `cps=True` to the `calibrate` method.
 
 We can, for example, form normalized Mondrian conformal predictive
-systems, by providing both `bins` and `sigmas` to the `calibrate`
-method. Here we will consider Mondrian categories formed from binning
-the point predictions:
+systems, by providing both a Mondrian categorizer and difficulty estimator
+to the `calibrate` method. Here we will consider Mondrian categories formed
+from binning the point predictions:
 
 ```python
-bins_cal, bin_thresholds = binning(rf.predict(X_cal), bins=5)
-rf.calibrate(X_cal, y_cal, sigmas=sigmas_cal, bins=bins_cal, cps=True)
+mc_pred = MondrianCategorizer()
+mc_pred.fit(X_cal, f=rf.predict, no_bins=5)
+
+rf.calibrate(X_cal, y_cal, de=de, mc=mc_pred, cps=True)
 ```
 
-By providing the bins (and sigmas) for the test objects, we can now make predictions with the conformal predictive system, through the method `predict_cps`.
-The output of this method can be controlled quite flexibly; here we request prediction intervals with 95% confidence to be output:
+We can now make predictions with the conformal predictive system,
+through the method `predict_cps`.  The output of this method can be
+controlled quite flexibly; here we request prediction intervals with
+95% confidence to be output:
 
 ```python
-bins_test = binning(rf.predict(X_test), bins=bin_thresholds)
-rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test,
-               lower_percentiles=2.5, higher_percentiles=97.5, y_min=0)
+rf.predict_cps(X_test, lower_percentiles=2.5, higher_percentiles=97.5, y_min=0)
 ```
 
 ```numpy
-array([[ 245826.3422693 ,  517315.83618985],
-       [ 145348.03415848,  392968.15587997],
-       [ 148774.65461212, 1034300.84195976],
+array([[ 240114.65604157,  869014.03528742],
+       [ 339706.24924814,  609239.58260891],
+       [ 404920.87940518,  637934.16698199],
        ...,
-       [ 589200.5725957 , 1057013.89102007],
-       [ 171938.29382952,  317732.31611141],
-       [ 167498.01540504,  482328.98552632]])
+       [      0.        , 1947549.10314688],
+       [ 173038.55234664,  335836.19025193],
+       [ 280187.36965593,  399290.04471503]])
 ```
 
 If we would like to take a look at the p-values for the true targets (these should be uniformly distributed), we can do the following:
 
 ```python
-rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test, y=y_test)
+rf.predict_cps(X_test, y=y_test)
 ```
 
 ```numpy
-array([0.98603614, 0.87178256, 0.44201984, ..., 0.05688804, 0.09473604,
-       0.31069913])
+array([0.38424814, 0.54023864, 0.28727364, ..., 0.35291685, 0.6110545 ,
+       0.60037036])
 ```
 
 We may request that the `predict_cps` method returns the full
@@ -435,7 +462,7 @@ vector containing one CPD per test instance, since the number of
 values may vary between categories.
 
 ```python
-cpds = rf.predict_cps(X_test, sigmas=sigmas_test, bins=bins_test, return_cpds=True)
+cpds = rf.predict_cps(X_test, return_cpds=True)
 ```
 
 The resulting vector of arrays is not displayed here, but we instead provide a plot for the CPD of a random test instance:
@@ -450,7 +477,7 @@ For additional examples of how to use the package and module, see [the documenta
 
 If you use `crepes` for a scientific publication, you are kindly requested to cite the following paper:
 
-Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179. [Link](https://copa-conference.com/papers/COPA2022_paper_11.pdf)
+Boström, H., 2022. crepes: a Python Package for Generating Conformal Regressors and Predictive Systems. In Conformal and Probabilistic Prediction and Applications. PMLR, 179. [Link](https://proceedings.mlr.press/v179/bostrom22a.html)
 
 Bibtex entry:
 
@@ -489,5 +516,5 @@ Bibtex entry:
 - - -
 
 Author: Henrik Boström (bostromh@kth.se)
-Copyright 2023 Henrik Boström
+Copyright 2024 Henrik Boström
 License: BSD 3 clause
