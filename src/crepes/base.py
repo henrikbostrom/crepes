@@ -1477,7 +1477,7 @@ class WrapRegressor():
     def calibrate(self, X, y, de=None, mc=None, oob=False, cps=False):
         """
         Fit a :class:`.ConformalRegressor` or 
-        :class:`.ConformalPredictiveSystem` using learner.
+        :class:`.ConformalPredictiveSystem` using the wrapped learner.
 
         Parameters
         ----------
@@ -2049,7 +2049,7 @@ class WrapClassifier():
     
     def calibrate(self, X, y, oob=False, class_cond=False, nc=hinge, mc=None):
         """
-        Fit a :class:`.ConformalClassifier` using learner.
+        Fit a :class:`.ConformalClassifier` using the wrapped learner.
 
         Parameters
         ----------
