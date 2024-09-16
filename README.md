@@ -11,7 +11,7 @@
 
 <br>
 
-`crepes` is a Python package that implements conformal classifiers,
+`crepes` is a Python package for conformal prediction that implements conformal classifiers,
 regressors, and predictive systems on top of any standard classifier
 and regressor, turning the original predictions into
 well-calibrated p-values and cumulative distribution functions, or
