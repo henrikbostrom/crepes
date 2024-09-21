@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.7.1 (21/09/2024)
+
+### Features
+
+- The `calibrate` methods of the classes `WrapClassifier` and `WrapRegressor` now take an additional argument `seed`, for setting the state of the random number generator. This allows for `predict_p` and `predict_set` of the former class and `predict_int` and `predict_cps` of the latter class as well as `evaluate` for both classes to become deterministic. The methods `predict_p`, `predict_set`, `predict_int` ,`predict_cps` and `evaluate` of these classes also have an argument `seed`, which can be used to over-ride any setting by the `calibrate` method. In addition, the corresponding methods of the classes `ConformalClassifier` and `ConformalPredictiveSystem` also include the argument `seed` for the same purpose. (The methods of `ConformalRegressor` currently contains no stochastic components and there is hence no need for a seed.) Thanks to @egonmedhatten and @tuvelofstrom for suggesting this extension.
+	
+- The `predict_p` methods of the classes `ConformalClassifier` and `WrapClassifier` now takes an optional argument `smoothing` to allow for generating both smoothed and non-smoothed p-values (default: `smoothing=True`).
+
+- The default value for the parameter `smoothing` of the `predict_set` and `evaluate` methods has been changed to `True`.
+ 
+- The class `DifficultyEstimator` in `crepes.extras` now includes a parameter `f` for providing a function to compute the difficulty estimates.
+	
+### Fixes
+
+- The documentation for the class `MondrianCategorizer` in `crepes.extras` has been corrected.
+	
 ## v0.7.0 (27/06/2024)
 
 ### Features

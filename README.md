@@ -1,8 +1,8 @@
 <p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_logo.png"></a></p>
 
 <p align="center">
-<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.7.0-brightgreen" alt="PyPI version" height=20 align="center"></a>
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.7.0-orange" alt="conda-forge version" height=20 align="center"></a>
+<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.7.1-brightgreen" alt="PyPI version" height=20 align="center"></a>
+<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.7.1-orange" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
 <a href="https://github.com/henrikbostrom/crepes/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSD--3--clause-blue" alt="License" height=20 align="center"></a>
