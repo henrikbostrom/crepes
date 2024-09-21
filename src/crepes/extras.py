@@ -262,24 +262,19 @@ class MondrianCategorizer():
 
         Examples
         --------
-        Assuming that ``X_prop_train`` is a proper training set, 
-        then a difficulty estimator using the distances to the k 
-        nearest neighbors can be formed in the following way 
-        (here using the default ``k=25``):
+        Assuming that ``X_train`` is an array of shape (n_samples, n_features)
+        and ``get_values`` is a function that given ``X_train`` returns a vector
+        of values of shape (n_samples,), then a Mondrian categorizer can
+        be formed in the following way, where the boundaries for the Mondrian
+        categories are found by partitioning the values in the vector into five
+        equal-sized bins:
         
         .. code-block:: python
 
-           from crepes.extras import DifficultyEstimator
+           from crepes.extras import MondrianCategorizer
 
-           de_knn_dist = DifficultyEstimator() 
-           de_knn_dist.fit(X_prop_train)
-
-        Note
-        ----
-        The use of out-of-bag calibration, as enabled by ``oob=True``, 
-        does not come with the theoretical validity guarantees of the regular
-        (inductive) conformal regressors and predictive systems, due to that 
-        calibration and test instances are not handled in exactly the same way.
+           mc = MondrianCategorizer()
+           mc.fit(X, f=get_values, no_bins=5)
         """
         if f is not None:
             if X is not None:
@@ -336,28 +331,18 @@ class MondrianCategorizer():
 
         Examples
         --------
-        Assuming ``de`` to be a fitted :class:`.DifficultyEstimator`, i.e., for
-        which :meth:`.fit` has earlier been called, difficulty estimates for a
+        Assuming ``mc`` to be a fitted :class:`.MondrianCategorizer`, i.e., for
+        which :meth:`.fit` has earlier been called, Mondrian categories for a
         set of objects ``X`` is obtained by:
 
         .. code-block:: python
         
-           difficulty_estimates = de.apply(X)
+           categories = mc.apply(X)
 
-        If ``de_oob`` is a :class:`.DifficultyEstimator` that has been fitted 
-        with the option ``oob=True`` and a training set, then a call to 
-        :meth:`.apply` without any objects will return the estimates for the 
-        training set:
-
-        .. code-block:: python
-        
-           oob_difficulty_estimates = de_oob.apply()
-
-        For a difficulty estimator employing any of the k-nearest neighbor 
-        approaches, the above will return an estimate for the difficulty 
-        of each object in the training set computed using a leave-one-out 
-        procedure, while for the variance-based approach the out-of-bag 
-        predictions will instead be used. 
+        Note
+        ----
+        The array used when calling :meth:`.fit` must have the same number of
+        columns (``n_features``) as the array used as input to :meth:`.apply`.
         """
         if self.f is not None:
             if self.bin_thresholds is None:
@@ -412,8 +397,8 @@ class DifficultyEstimator():
         else:
             return f"DifficultyEstimator(fitted={self.fitted})"
     
-    def fit(self, X=None, y=None, residuals=None, learner=None, k=25, 
-            scaler=False, beta=0.01, oob=False):
+    def fit(self, X=None, f=None, y=None, residuals=None, learner=None,
+            k=25, scaler=False, beta=0.01, oob=False):
         """
         Fit difficulty estimator.
 
@@ -421,15 +406,19 @@ class DifficultyEstimator():
         ----------
         X : array-like of shape (n_samples, n_features), default=None
            set of objects
+        f : function which given an array-like of shape (n_samples, n_features)
+            should return a vector of shape (n_samples,) of type int or float, 
+            default=None
+            function used to compute difficulty estimates
         y : array-like of shape (n_samples,), default=None
             target values
         residuals : array-like of shape (n_samples,), default=None
             true target values - predicted values
         learner : an object with attribute ``learner.estimators_``, default=None
            an ensemble model where each model m in ``learner.estimators_`` has a
-           method ``m.predict``
+           method ``m.predict`` (used only if f=None)
         k: int, default=25
-           number of neighbors (used only if learner=None)
+           number of neighbors (used only if f=None and learner=None)
         scaler : bool, default=True
            use min-max-scaler on the difficulty estimates
         beta : int or float, default=0.01 
@@ -501,6 +490,17 @@ class DifficultyEstimator():
            de_var = DifficultyEstimator() 
            de_var.fit(X_proper_train, learner=learner_prop, scaler=True)
 
+        Difficulty estimates may also be computed by an externally defined
+        function. Assuming that ``diff_model`` is a fitted regression model,
+        for which the ``predict`` method gives estimates of the absolute
+        error for the objects in ``X_proper_train``, then normalized difficulty
+        estimates can be obtained from the following difficulty estimator:
+
+        .. code-block:: python
+
+           de_mod = DifficultyEstimator() 
+           de_mod.fit(X_proper_train, f=diff_model.predict, scaler=True)
+        
         The :class:`.DifficultyEstimator` can also support the construction of 
         conformal regressors and predictive systems that employ out-of-bag 
         calibration. For the k-nearest neighbor approaches, the difficulty of
@@ -537,6 +537,7 @@ class DifficultyEstimator():
         (inductive) conformal regressors and predictive systems, due to that 
         calibration and test instances are not handled in exactly the same way.
         """
+        self.f = f
         if isinstance(y, pd.Series):
             y = y.values
         self.y = y
@@ -546,16 +547,9 @@ class DifficultyEstimator():
         self.beta = beta
         self.scaler = scaler
         self.oob = oob
-        if self.learner is None:
-            self.estimator_type = "knn"
-            if self.residuals is None:
-                if self.y is None:
-                    self.target_type = "none"
-                else:
-                    self.target_type = "labels"
-            else:
-                self.target_type = "residuals"
-        else:
+        if self.f is not None:
+            self.estimator_type = "function"
+        elif self.learner is not None:
             self.estimator_type = "variance"
             try:
                 self.learner.estimators_
@@ -569,10 +563,53 @@ class DifficultyEstimator():
                     raise ValueError(
                         ("learner.estimators_ is missing the attribute "
                          "random_state"))
-        if self.estimator_type == "knn":
+        else:
+            self.estimator_type = "knn"
+            if self.residuals is None:
+                if self.y is None:
+                    self.target_type = "none"
+                else:
+                    self.target_type = "labels"
+            else:
+                self.target_type = "residuals"
             if X is None:
                 raise ValueError("X=None is not allowed for k-nearest"
                                  " neighbor estimators")
+            
+        if self.estimator_type == "function":
+            if X is None and self.scaler:
+                raise ValueError("X=None is allowed only if scaler=False"
+                                 " for function estimators")
+            if self.oob:
+                raise ValueError("oob=True is not allowed for function"
+                                 " estimators")
+            if self.scaler:
+                sigmas = self.f(X)
+                sigma_scaler = MinMaxScaler(clip=True)
+                sigma_scaler.fit(sigmas[:,None])
+                self.sigma_scaler = sigma_scaler
+
+        if self.estimator_type == "variance":
+            if X is None and (self.oob or self.scaler):
+                raise ValueError("X=None is allowed only if oob=False and "
+                                 "scaler=False for variance estimator")
+            if self.oob or self.scaler:
+                predictions = np.array([model.predict(X)
+                                        for model in self.learner.estimators_])
+                oob_masks = np.array([
+                    get_oob(self.learner.estimators_[i].random_state, len(X))
+                    for i in range(len(self.learner.estimators_))])
+                sigmas = np.array([np.var(predictions[oob_masks[:,i],i])
+                                   for i in range(len(X))])
+            if self.scaler:
+                sigma_scaler = MinMaxScaler(clip=True)
+                sigma_scaler.fit(sigmas[:,None])
+                self.sigma_scaler = sigma_scaler
+                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0] 
+            if self.oob:
+                    self.sigmas = sigmas
+
+        if self.estimator_type == "knn":
             nn = NearestNeighbors(n_neighbors=self.k, n_jobs=-1)
             nn_scaler = MinMaxScaler(clip=True)
             nn_scaler.fit(X)
@@ -601,25 +638,7 @@ class DifficultyEstimator():
                     sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]
                 if self.oob:
                     self.sigmas = sigmas
-        else: # self.estimator_type == "variance":
-            if X is None and (self.oob or self.scaler):
-                raise ValueError("X=None is allowed only if oob=False and "
-                                 "scaler=False for variance estimator")
-            if self.oob or self.scaler:
-                predictions = np.array([model.predict(X)
-                                        for model in self.learner.estimators_])
-                oob_masks = np.array([
-                    get_oob(self.learner.estimators_[i].random_state, len(X))
-                    for i in range(len(self.learner.estimators_))])
-                sigmas = np.array([np.var(predictions[oob_masks[:,i],i])
-                                   for i in range(len(X))])
-            if self.scaler:
-                sigma_scaler = MinMaxScaler(clip=True)
-                sigma_scaler.fit(sigmas[:,None])
-                self.sigma_scaler = sigma_scaler
-                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0] 
-            if self.oob:
-                    self.sigmas = sigmas
+                    
         self.fitted = True
         return self
 
@@ -685,7 +704,7 @@ class DifficultyEstimator():
                                    for indexes in neighbor_indexes])
             if self.scaler:
                 sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]
-        else: # self.estimator_type == "variance"
+        elif self.estimator_type == "variance":
             if self.oob:
                 predictions = np.array([model.predict(X)
                                         for model in self.learner.estimators_])
@@ -698,6 +717,10 @@ class DifficultyEstimator():
                 sigmas = np.var([model.predict(X) for
                                  model in self.learner.estimators_],
                             axis=0)
+            if self.scaler:
+                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]            
+        else: # self.estimator_type == "function"
+            sigmas = self.f(X)
             if self.scaler:
                 sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]            
         return sigmas + self.beta
