@@ -167,7 +167,7 @@ class ConformalClassifier(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         if not self.mondrian:
             if smoothing:
                 p_values = np.array(
@@ -263,7 +263,7 @@ class ConformalClassifier(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         if smoothing:
             p_values = self.predict_p(alphas, bins, smoothing=True)
             prediction_sets = (p_values >= 1-confidence).astype(int)
@@ -368,7 +368,7 @@ class ConformalClassifier(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         prediction_sets = self.predict_set(alphas, bins, confidence, smoothing)
         test_results = get_test_results(prediction_sets, classes, y, metrics)
         if seed is not None:
@@ -951,7 +951,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         if self.mondrian:
             bin_values, bin_alphas = self.alphas
             bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
@@ -1330,7 +1330,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         if isinstance(y, pd.Series):
             y = y.values
         if isinstance(y_hat, pd.Series):
@@ -1701,7 +1701,7 @@ class WrapClassifier():
         """
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
             self.seed = seed
         if isinstance(y, pd.Series):
             y = y.values
@@ -1768,7 +1768,7 @@ class WrapClassifier():
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         alphas = self.nc(self.learner.predict_proba(X))
         if self.class_cond:
             p_values = np.array([
@@ -1841,7 +1841,7 @@ class WrapClassifier():
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
         alphas = self.nc(self.learner.predict_proba(X))
         if self.class_cond:
             prediction_set = np.array([
@@ -1940,7 +1940,7 @@ class WrapClassifier():
                 seed = self.seed
             if seed is not None:
                 random_state = np.random.get_state()
-                np.random.seed(seed)
+                np.random.seed = seed
             prediction_sets = self.predict_set(X, confidence, smoothing)
             test_results = get_test_results(prediction_sets,
                                             self.learner.classes_, y, metrics)
@@ -2161,7 +2161,7 @@ class WrapRegressor():
         """
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed(seed)
+            np.random.seed = seed
             self.seed = seed
         if isinstance(y, pd.Series):
             y = y.values
@@ -2255,7 +2255,7 @@ class WrapRegressor():
                     seed = self.seed
             if seed is not None:
                 random_state = np.random.get_state()
-                np.random.seed(seed)
+                np.random.seed = seed
             y_hat = self.learner.predict(X)
             if self.de is None:
                 sigmas = None
@@ -2435,7 +2435,7 @@ class WrapRegressor():
                     seed = self.seed
             if seed is not None:
                 random_state = np.random.get_state()
-                np.random.seed(seed)
+                np.random.seed = seed
             y_hat = self.learner.predict(X)
             if self.de is None:
                 sigmas = None
@@ -2537,7 +2537,7 @@ class WrapRegressor():
                     seed = self.seed
             if seed is not None:
                 random_state = np.random.get_state()
-                np.random.seed(seed)
+                np.random.seed = seed
             y_hat = self.learner.predict(X)
             if self.de is None:
                 sigmas = None
