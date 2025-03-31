@@ -12,7 +12,7 @@
 	
 - Both smoothed and non-smoothed p-values may now be output for conformal predictive systems; smoothing is the default but can be disabled by setting `smoothing=False` for the methods `predict_p` and `predict`.
 
-- The `evaluate` method of `ConformalClassifier`, `ConformalRegressor`, and `ConformalPredictiveSystem`, as well as of `WrapClassifier` and `WrapRegressor`, now includes the metric `ks_test`, which provides the p-value for the Kolmogorov-Smirnov test of uniformity of predicted p-values.
+- The `evaluate` method of `ConformalClassifier`, `ConformalRegressor`, and `ConformalPredictiveSystem`, as well as of `WrapClassifier` and `WrapRegressor`, now includes the metric `ks_test`, which provides the p-value for the Kolmogorov-Smirnov test of uniformity of predicted p-values. Thanks to @egonmedhatten for the suggestion! 
 			
 ### Fixes
 
