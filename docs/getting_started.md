@@ -97,17 +97,18 @@ rf.evaluate(X_test, y_test, confidence=0.99)
 ```
 
 ```python
-{'error': 0.005681818181818232,
- 'avg_c': 1.691287878787879,
- 'one_c': 0.3087121212121212,
+{'error': 0.007575757575757569,
+ 'avg_c': 1.6325757575757576,
+ 'one_c': 0.36742424242424243,
  'empty': 0.0,
- 'time_fit': 2.3365020751953125e-05,
- 'time_evaluate': 0.017678260803222656}
+ 'ks_test': 0.0033578466103315894,
+ 'time_fit': 1.9073486328125e-06,
+ 'time_evaluate': 0.04798746109008789}
 ```
 
 To control the error level across different groups of objects of
 interest, we may use so-called Mondrian conformal classifiers. A
-Mondrian conformal classifier if formed by providing a function or a
+Mondrian conformal classifier is formed by providing a function or a
 `MondrianCategorizer` (defined in `crepes.extras`) as an additional
 argument, named `mc`, for the `calibrate` method.
 
@@ -133,70 +134,66 @@ array([[0, 1],
        [1, 1]])
 ```
 
-We may also form the categories using a `MondrianCategorizer`, which
-may be fitted in several different ways. Below we show how to form
-categories by (equal-sized) binning of the first feature value, using
-five bins (instead of the default which is 10); note that we need
-objects to get the threshold values for the categories (bins). 
+The class-conditional conformal classifier is a special type of Mondrian
+conformal classifier, for which the categories are formed by the true labels;
+we can generate one by setting `class_cond=True` in the call to `calibrate`
 
 ```python
-from crepes.extras import MondrianCategorizer
+rf_classcond = WrapClassifier(rf.learner)
 
-def get_values(X):
-    return X[:,0]
+rf_classcond.calibrate(X_cal, y_cal, class_cond=True)
 
-mc = MondrianCategorizer()
-mc.fit(X_cal, f=get_values, no_bins=5)
+rf_classcond.evaluate(X_test, y_test, confidence=0.99)
+```
 
-rf_mond = WrapClassifier(rf.learner)
-rf_mond.calibrate(X_cal, y_cal, mc=mc)
+```python
+{'error': 0.0018939393939394478,
+ 'avg_c': 1.740530303030303,
+ 'one_c': 0.25946969696969696,
+ 'empty': 0.0,
+ 'ks_test': 0.11458837583733483,
+ 'time_fit': 7.152557373046875e-07,
+ 'time_evaluate': 0.06147575378417969}
+ ```
 
-rf_mond.predict_set(X_test)
+When employing an inductive conformal predictor, the predicted
+p-values (and consequently the errors made) for a test set are not
+independent. Semi-online conformal predictors can however make them
+independent by updating the calibration set immediately after each
+prediction (assuming that the true label is then available). We can
+turn the conformal classifiers into semi-online conformal classifiers
+by enabling online calibration, i.e., setting `online=True` when calling
+the above methods, while also providing the true labels, e.g.,
+
+```python
+rf_classcond.predict_p(X_test, y_test, online=True)
 ```
 
 ```numpy
-array([[0, 1],
-       [1, 1],
-       [1, 0],
+array([[8.13837566e-05, 8.86436603e-01],
+       [6.60518590e-02, 4.02350293e-01],
+       [4.28646783e-01, 4.29930890e-02],
        ...,
-       [1, 0],
-       [1, 0],
-       [1, 1]])
+       [7.05118942e-01, 9.45056960e-03],
+       [7.27003479e-01, 1.27347189e-02],
+       [1.76403756e-01, 1.21434924e-01]])
 ```
 
-For conformal classifiers that employ learners that use bagging, like
-random forests, we may consider an alternative strategy to dividing
-the original training set into a proper training and calibration set;
-we may use the out-of-bag (OOB) predictions, which allow us to use the
-full training set for both model building and calibration. It should
-be noted that this strategy does not come with the theoretical
-validity guarantee of the above (inductive) conformal classifiers, due
-to that calibration and test instances are not handled in exactly the
-same way. In practice, however, conformal classifiers based on
-out-of-bag predictions rarely fail to meet the coverage requirements.
-
-Below we show how to enable this in conjunction with a specific type
-of Mondrian conformal classifier, a so-called class-conditional
-conformal classifier, which uses the class labels as Mondrian
-categories:
+Similarly, we can evaluate the conformal classifier while using online
+calibration:
 
 ```python
-rf = WrapClassifier(RandomForestClassifier(n_jobs=-1, n_estimators=500, oob_score=True))
-
-rf.fit(X_train, y_train)
-
-rf.calibrate(X_train, y_train, class_cond=True, oob=True)
-
-rf.evaluate(X_test, y_test, confidence=0.9)
+rf_classcond.evaluate(X_test, y_test, confidence=0.99, online=True)
 ```
 
 ```python
-{'error': 0.10795454545454541,
- 'avg_c': 1.0984848484848484,
- 'one_c': 0.9015151515151515,
+{'error': 0.007575757575757569,
+ 'avg_c': 1.6117424242424243,
+ 'one_c': 0.38825757575757575,
  'empty': 0.0,
- 'time_fit': 0.0001518726348876953,
- 'time_evaluate': 0.06513118743896484}
+ 'ks_test': 0.14097384777782784,
+ 'time_fit': 1.9073486328125e-06,
+ 'time_evaluate': 0.05298352241516113}
 ```
 
 Let us also illustrate how `crepes` can be used to generate conformal
@@ -247,13 +244,13 @@ rf.predict_int(X_test, confidence=0.99)
 ```
 
 ```numpy
-array([[   8260.53, 1065083.53],
-       [ -54858.5 , 1001964.5 ],
-       [  -7779.25, 1049043.75],
+array([[1938866.06, 3146372.54],
+       [ 225335.1 , 1432841.58],
+       [-403305.49,  804200.99],
        ...,
-       [ 297229.8 , 1354052.8 ],
-       [-270260.  ,  786563.  ],
-       [-185146.94,  871676.06]])
+       [ 443742.33, 1651248.81],
+       [-343684.48,  863822.  ],
+       [-153629.93, 1053876.55]])
 ```
 
 The output is a [NumPy](https://numpy.org) array with a row for each
@@ -269,13 +266,13 @@ rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 288602.83,  784741.23],
-       [ 225483.8 ,  721622.2 ],
-       [ 272563.05,  768701.45],
+array([[2302049.84, 2783188.76],
+       [ 588518.88, 1069657.8 ],
+       [      0.  ,  441017.21],
        ...,
-       [ 577572.1 , 1073710.5 ],
-       [  10082.3 ,  506220.7 ],
-       [  95195.36,  591333.76]])
+       [ 806926.11, 1288065.03],
+       [  19499.3 ,  500638.22],
+       [ 209553.85,  690692.77]])
 ```
 
 The above intervals are not normalized, i.e., they are all of the same
@@ -313,13 +310,13 @@ rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 222036.82862012,  851307.23137988],
-       [ 316413.83821721,  630692.16178279],
-       [ 384784.44135415,  656480.05864585],
+array([[1769594.36212355, 3315644.23787645],
+       [ 693827.99796647,  964348.68203353],
+       [ 124886.97469338,  276008.52530662],
        ...,
-       [ 110527.74801848, 1540754.85198152],
-       [ 174799.94131735,  341503.05868265],
-       [ 274305.55734858,  412223.56265142]])
+       [ 661373.45043166, 1433617.68956833],
+       [ 178769.2939384 ,  341368.2260616 ],
+       [ 222837.12801117,  677409.49198883]])
 ```
 
 Depending on the employed difficulty estimator, the normalized
@@ -361,16 +358,29 @@ rf.predict_int(X_test, y_min=0)
 ```
 
 ```numpy
-array([[ 242624.89,  830719.17],
-       [ 329358.5 ,  617747.5 ],
-       [ 371028.  ,  670236.5 ],
+array([[1152528.9 , 3932709.7 ],
+       [ 692366.75,  965809.93],
+       [ 124254.81,  276640.69],
        ...,
-       [      0.  , 1730501.3 ],
-       [ 157022.53,  359280.47],
-       [ 266456.61,  420072.51]])
+       [ 622939.57, 1472051.57],
+       [ 155346.82,  364790.7 ],
+       [ 239474.31,  660772.31]])
 ```
 
-We could very easily switch from conformal regressors to conformal
+Similarly to semi-online conformal classifiers, we may enable online calibration
+also for conformal regressors; this is again done by setting `online=True` when
+calling any of the applicable methods, while also providing the true labels, e.g.,
+
+```python
+rf.predict_p(X_test, y_test, online=True)
+```
+
+```numpy
+array([0.09369225, 0.52548032, 0.49992477, ..., 0.72979714, 0.87495964,
+       0.58352253])
+```
+
+We can easily switch from conformal regressors to conformal
 predictive systems. The latter produce cumulative distribution
 functions (conformal predictive distributions). From these we can
 generate prediction intervals, but we can also obtain percentiles,
@@ -393,50 +403,54 @@ rf.calibrate(X_cal, y_cal, de=de, mc=mc_pred, cps=True)
 ```
 
 We can now make predictions with the conformal predictive system,
-through the method `predict_cps`.  The output of this method can be
-controlled quite flexibly; here we request prediction intervals with
-95% confidence to be output:
+through several different methods, e.g., `predict_percentiles`:
 
 ```python
-rf.predict_cps(X_test, lower_percentiles=2.5, higher_percentiles=97.5, y_min=0)
+rf.predict_percentiles(X_test, higher_percentiles=[90, 95, 99])
 ```
 
 ```numpy
-array([[ 240114.65604157,  869014.03528742],
-       [ 339706.24924814,  609239.58260891],
-       [ 404920.87940518,  637934.16698199],
+array([[3120432.14791764, 3403976.16608241, 3952384.13595105],
+       [ 930191.36994287,  979804.59585495, 1075762.49571536],
+       [ 236278.82580469,  253387.66592079,  329933.49293406],
        ...,
-       [      0.        , 1947549.10314688],
-       [ 173038.55234664,  335836.19025193],
-       [ 280187.36965593,  399290.04471503]])
+       [1336110.21956702, 1477739.04927264, 1751666.10820498],
+       [ 298621.13482031,  317029.35735016,  399388.68783836],
+       [ 564574.75363948,  615226.06727944,  762212.9912238 ]])
 ```
 
-If we would like to take a look at the p-values for the true targets (these should be uniformly distributed), we can do the following:
+Similarly to semi-online conformal classifiers and regressors, we can enable
+online calibration also for conformal predictive systems; here we generate
+prediction intervals at the default (95%) confidence level:
 
 ```python
-rf.predict_cps(X_test, y=y_test)
+rf.predict_int(X_test, y_test, y_min=0, online=True)
 ```
 
 ```numpy
-array([0.38424814, 0.54023864, 0.28727364, ..., 0.35291685, 0.6110545 ,
-       0.60037036])
+array([[1719676.80439219, 3707173.76806116],
+       [ 684289.27240227, 1032856.71531186],
+       [ 127189.61835749,  274385.59426486],
+       ...,
+       [ 630347.70469164, 1594876.58130005],
+       [ 167399.51044545,  337513.60197203],
+       [ 232815.51352497,  641580.14787679]])
 ```
 
-We may request that the `predict_cps` method returns the full
-conformal predictive distribution (CPD) for each test instance, as
-defined by the threshold values, by setting `return_cpds=True`. The
-format of the distributions vary with the type of conformal predictive
-system; for a standard and normalized CPS, the output is an array with
-a row for each test instance and a column for each calibration
-instance (residual), while for a Mondrian CPS, the default output is a
-vector containing one CPD per test instance, since the number of
-values may vary between categories.
+We may also obtain the full conformal predictive distribution for each test
+instance, as defined by the threshold values:
 
 ```python
-cpds = rf.predict_cps(X_test, return_cpds=True)
+rf.predict_cpds(X_test)
 ```
 
-The resulting vector of arrays is not displayed here, but we instead provide a plot for the CPD of a random test instance:
+For a Mondrian conformal predictive system (or any semi-online conformal
+predictive system), the output is a vector containing one CPD per test instance,
+while for a standard or normalized conformal predictive system (for which online
+calibration is not enabled), the output is a 2-dimensional array.
+
+The resulting vector of vectors is not displayed here, but we instead provide a plot
+for the CPD of a random test instance:
 
 ![cpd](https://user-images.githubusercontent.com/7838741/235081969-328d7a23-26c9-4799-a246-8c35fd7ac88e.png)
 
@@ -445,3 +459,5 @@ You are welcome to download and try out `crepes`; you may find the following not
 [crepes using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb)
 
 [crepes using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb)
+
+You may also take a look at the [slides from my tutorial at COPA 2024](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.ipynb>).

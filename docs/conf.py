@@ -17,14 +17,14 @@ sys.path.insert(0, os.path.abspath('../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'crepes'
-copyright = '2024, Henrik Boström'
+copyright = '2025, Henrik Boström'
 author = 'Henrik Boström'
 
 # The short X.Y version
-version = '0.7.1'
+version = '0.8.0'
 
 # The full version, including alpha/beta/rc tags
-release = '0.7.1'
+release = '0.8.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -68,7 +68,7 @@ html_theme = "pydata_sphinx_theme"
 
 html_theme_options = {
     "navbar_end": ["navbar-icon-links"],
-    "sidebarwidth": 270,
+    "sidebarwidth": 370,
     "collapse_navigation": False,
     "navigation_depth": 4,
     "show_toc_level": 2,
@@ -86,6 +86,7 @@ html_context = {
 html_title = f"{project} v. {version}"
 html_last_updated_fmt = "%b %d, %Y"
 
+toc_object_entries_show_parents = "hide"
 
 # -- Extension configuration -------------------------------------------------
 
