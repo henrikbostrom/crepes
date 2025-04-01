@@ -6,7 +6,7 @@
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
 <a href="https://github.com/henrikbostrom/crepes/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSD--3--clause-blue" alt="License" height=20 align="center"></a>
-<a href="https://github.com/henrikbostrom/crepes/blob/main/CHANGELOG.md"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
+<a href="https://github.com/henrikbostrom/crepes/releases/tag/v0.8.0"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
 </p>
 
 <br>
