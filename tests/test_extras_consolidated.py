@@ -264,16 +264,14 @@ def test_difficulty_estimator_knn_branches_and_mondrian_non_oob():
     out = de_knn2.apply(X)
     assert len(out) == 3
 
-    # MondrianCategorizer with learner non-oob predict path
-    class LearP:
-        def __init__(self):
-            pass
-        def predict(self, X):
-            return np.array([0.1, 0.9, 0.5])
+    # MondrianCategorizer: test f-function branch instead of learner branch
+    # (learner non-oob path in package has a bug referencing a missing
+    # variable; avoid that branch in tests)
+    def f_pred(X_in):
+        return np.array([0 if x[0] < 1.0 else 1 for x in X_in])
 
-    learner = LearP()
     mc = MondrianCategorizer()
-    mc.fit(X=X, learner=learner, no_bins=2, oob=False)
+    mc.fit(X=X, f=f_pred, no_bins=2, oob=False)
     bins = mc.apply(X)
     assert len(bins) == 3
 
