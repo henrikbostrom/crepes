@@ -6,7 +6,7 @@ categorizers, with and without out-of-bag predictions.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2024 Henrik Boström
+Copyright 2025 Henrik Boström
 
 License: BSD 3 clause
 
@@ -41,7 +41,7 @@ def hinge(X_prob, classes=None, y=None):
     --------
     Assuming that ``X_prob`` is an array with predicted probabilities and
     ``classes`` and ``y`` are vectors with the class names (in order) and
-    correct class labels, respectively, the non-conformity scores are generated 
+    correct class labels, respectively, the non-conformity scores are generated
     by:
 
     .. code-block:: python
@@ -224,13 +224,15 @@ class MondrianCategorizer():
     def __repr__(self):
         if self.f is not None:
             return (f"MondrianCategorizer(fitted={self.fitted}, "
-                    f"f={self.f.__name__}, no_bins={len(self.bin_thresholds)-1})")
+                    f"f={self.f.__name__}, "
+                    f"no_bins={len(self.bin_thresholds)-1})")
         elif self.de is not None:
             return (f"MondrianCategorizer(fitted={self.fitted}, "
                     f"de={self.de}, no_bins={len(self.bin_thresholds)-1})")
         elif self.learner is not None:
             return (f"MondrianCategorizer(fitted={self.fitted}, "
-                    f"learner={self.learner}, no_bins={len(self.bin_thresholds)-1})")
+                    f"learner={self.learner}, "
+                    f"no_bins={len(self.bin_thresholds)-1})")
         else:
             return f"MondrianCategorizer(fitted={self.fitted})"
     
@@ -305,14 +307,15 @@ class MondrianCategorizer():
                 if X is not None:
                     scores = learner.predict(X)
                 else:
-                    raise ValueError(("X must be provided since learner is not None"
-                                      "and oob=False"))
+                    raise ValueError(("X must be provided since learner is "
+                                      "not None and oob=False"))
             self.learner = learner
             bins, bin_thresholds = binning(scores, bins=no_bins)
             self.bin_thresholds = bin_thresholds
         else:
             raise ValueError("One of f, de, and learner must not be None")
         self.fitted = True
+        self.fitted_ = True
         return self
 
     def apply(self, X):
@@ -415,8 +418,8 @@ class DifficultyEstimator():
         residuals : array-like of shape (n_samples,), default=None
             true target values - predicted values
         learner : an object with attribute ``learner.estimators_``, default=None
-           an ensemble model where each model m in ``learner.estimators_`` has a
-           method ``m.predict`` (used only if f=None)
+           an ensemble model where each model m in ``learner.estimators_`` has
+           a method ``m.predict`` (used only if f=None)
         k: int, default=25
            number of neighbors (used only if f=None and learner=None)
         scaler : bool, default=True
@@ -640,6 +643,7 @@ class DifficultyEstimator():
                     self.sigmas = sigmas
                     
         self.fitted = True
+        self.fitted_ = True
         return self
 
     def apply(self, X=None):
@@ -718,11 +722,11 @@ class DifficultyEstimator():
                                  model in self.learner.estimators_],
                             axis=0)
             if self.scaler:
-                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]            
+                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]
         else: # self.estimator_type == "function"
             sigmas = self.f(X)
             if self.scaler:
-                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]            
+                sigmas = self.sigma_scaler.transform(sigmas[:,None])[:,0]
         return sigmas + self.beta
 
 def get_oob(seed, n_samples):
@@ -744,4 +748,3 @@ def get_oob(seed, n_samples):
     return np.bincount(np.random.RandomState(seed).randint(0, n_samples,
                                                            n_samples),
                        minlength=n_samples) == 0
-

@@ -1,6 +1,6 @@
 # References
 
-<a id="1">[1]</a> Vovk, V., Gammerman, A. and Shafer, G., 2005. Algorithmic learning in a random world. Springer [Link](https://link.springer.com/book/10.1007/b106715)
+<a id="1">[1]</a> Vovk, V., Gammerman, A. and Shafer, G., 2022. Algorithmic learning in a random world. 2nd edition. Springer [Link](https://link.springer.com/book/10.1007/978-3-031-06649-8)
 
 <a id="2">[2]</a> Papadopoulos, H., Proedrou, K., Vovk, V. and Gammerman, A., 2002. Inductive confidence machines for regression. European Conference on Machine Learning, pp. 345-356. [Link](https://link.springer.com/chapter/10.1007/3-540-36755-1_29)
 

@@ -1,6 +1,7 @@
 sphinx
 numpy
 pandas
+scipy
 scikit-learn
 numpydoc
 nbsphinx
