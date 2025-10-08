@@ -18,7 +18,8 @@ regressors and predictive systems. While the package allows you to use
 your own functions to compute difficulty estimates, non-conformity
 scores and Mondrian categories, there is also a separate module,
 called ``crepes.extras``, which provides some standard options for
-these.
+these. For testing the underlying assumption of exchangeability,
+you may use the classes in ``crepes.martingales``. 
 
 .. raw:: html
 
@@ -30,7 +31,9 @@ these.
     Getting started <getting_started.rst>
     The crepes package <crepes>	      
     The crepes.extras module <crepes.extras>
+    The crepes.martingales module <crepes.martingales>
     Examples <crepes_nb_wrap.ipynb>
     More examples <crepes_nb.ipynb>
+    Conformal test martingales <martingales_nb.ipynb>
     Citing crepes <citing.md>
     References <references.md>
