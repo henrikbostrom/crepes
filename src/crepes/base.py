@@ -14,7 +14,7 @@ License: BSD 3 clause
 
 """
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 import numpy as np
 import pandas as pd
@@ -752,7 +752,7 @@ class ConformalRegressor(ConformalPredictor):
         
         Returns
         -------
-        p-values : ndarray of shape (n_samples, n_classes)
+        p-values : ndarray of shape (n_samples,)
             p-values
 
         Examples
