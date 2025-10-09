@@ -2184,7 +2184,7 @@ class ConformalPredictiveSystem(ConformalPredictor):
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed = seed
+            np.random.seed(seed)
         if self.mondrian:
             bin_values, bin_alphas = self.binned_alphas
             bin_indexes = [np.argwhere(bins == b).T[0] for b in bin_values]
@@ -3527,7 +3527,7 @@ class WrapClassifier():
         """
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed = seed
+            np.random.seed(seed)
             self.seed = seed
         if isinstance(y, pd.Series):
             y = y.values
@@ -3621,7 +3621,7 @@ class WrapClassifier():
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed = seed
+            np.random.seed(seed)
         alphas = self.nc(self.learner.predict_proba(X))
         classes = self.learner.classes_
         if not online:
@@ -3740,7 +3740,7 @@ class WrapClassifier():
             seed = self.seed
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed = seed
+            np.random.seed(seed)
         alphas = self.nc(self.learner.predict_proba(X))
         classes = self.learner.classes_
         if not online:
@@ -4098,7 +4098,7 @@ class WrapRegressor():
         """
         if seed is not None:
             random_state = np.random.get_state()
-            np.random.seed = seed
+            np.random.seed(seed)
             self.seed = seed
         if isinstance(y, pd.Series):
             y = y.values
