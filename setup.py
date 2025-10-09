@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="crepes",
-    version="0.8.0",
+    version="0.9.0",
     author="Henrik Boström",
     author_email="bostromh@kth.se",
     description="Conformal classifiers, regressors, and predictive systems (crepes)",
@@ -23,5 +23,5 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     install_requires=["numpy", "pandas", "scipy"],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 )

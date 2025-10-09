@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.0 (8/10/2025)
+
+### Features
+
+- Conformal test martingales have been included in the new module `crepes.martingales`, which defines the betting functions `EpsilonBettingFunction` and `StepBettingFunction` (with and without drift) as well as the martingales `SimpleJumper`, `SleeperStayer`, `SleeperDrifter`and `CompositeMartingale`, which can be used in combination with any betting function. The new module also includes the method `semi_online_p_values` for generating (smoothed) p-values from non-conformity scores in the semi-online mode. For more details, please consult the updated documentation and the newly added Jupyter notebook `martingales_nb.ipynb`.
+
+### Fixes
+
+- A minor bug in the documentation has been fixed.
+	
 ## v0.8.0 (31/03/2025)
 
 ### Features

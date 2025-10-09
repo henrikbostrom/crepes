@@ -1,12 +1,12 @@
 <p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_logo.png"></a></p>
 
 <p align="center">
-<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.8.0-brightgreen" alt="PyPI version" height=20 align="center"></a>
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.8.0-orange" alt="conda-forge version" height=20 align="center"></a>
+<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.9.0-brightgreen" alt="PyPI version" height=20 align="center"></a>
+<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.9.0-orange" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
 <a href="https://github.com/henrikbostrom/crepes/tree/main?tab=readme-ov-file#BSD-3-Clause-1-ov-file"><img src="https://img.shields.io/badge/license-BSD--3--clause-blue" alt="License" height=20 align="center"></a>
-<a href="https://github.com/henrikbostrom/crepes/releases/tag/v0.8.0"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
+<a href="https://github.com/henrikbostrom/crepes/releases/tag/v0.9.0"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
 </p>
 
 <br>
@@ -23,7 +23,8 @@ regressors and predictive systems. While the package allows you to use
 your own functions to compute difficulty estimates, non-conformity
 scores and Mondrian categories, there is also a separate module,
 called `crepes.extras`, which provides some standard options for
-these.
+these. For testing the underlying assumption of exchangeability,
+you may use the classes in the module `crepes.martingales`. 
 
 ## Installation
 
@@ -483,9 +484,36 @@ for the CPD of a random test instance:
 
 ![cpd](https://user-images.githubusercontent.com/7838741/235081969-328d7a23-26c9-4799-a246-8c35fd7ac88e.png)
 
+We may also test the exchangeability assumption using conformal test martingales. Assume that we
+have obtained p-values using a semi-online conformal predictor, e.g.,
+
+```python
+p_values = rf.predict_p(X_test, y_test, online=True)
+```
+
+We can now test if the p-values are distributed independently and uniformly over [0, 1] using any of the
+available conformal test martingale algorithms in ``crepes.martingales``. If the exchangeability assumption
+holds then the probability of observing a martingale value exceeding c is less than or equal to 1/c.
+This means that probability of incorrectly rejecting the assumption is bounded by 1/c. We here show
+how to obtain martingale values for the above p-values using Simple Jumper:
+
+```python
+from crepes.martingales import SimpleJumper
+
+martingale_values = SimpleJumper().apply(p_values)
+```
+
+We may also ask for the lowest index for which the martingale value exceeds a specified threshold:
+
+```python
+SimpleJumper().apply(np.sort(p_values), c=100)
+```
+
+Since the p-values are sorted in the above example, the conformal test martingale will detect a violation of the exchangeability assumption early on and return a low index. If instead the original (unsorted) p-values are provided, it is very likely that the conformal test martingale will not detect any data drift and will just return the length of the p-value vector.
+
 ## Examples
 
-For additional examples of how to use the package and module, see [the documentation](https://crepes.readthedocs.io/en/latest/), [this Jupyter notebook using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb), and [this Jupyter notebook using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb).
+For additional examples of how to use the package and module, see [the documentation](https://crepes.readthedocs.io/en/latest/), [this Jupyter notebook using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb), [this Jupyter notebook using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb) and [this Jupyter notebook on the use of conformal test martingales](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb).
 
 You may also take a look at the [slides from my tutorial at COPA 2024](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.ipynb>).
 

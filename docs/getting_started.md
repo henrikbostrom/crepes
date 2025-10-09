@@ -27,7 +27,7 @@ training set into a proper training set and a calibration set:
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 
-dataset = fetch_openml(name="qsar-biodeg", parser="auto")
+dataset = fetch_openml(name="qsar-biodeg", version=1, parser="auto")
 
 X = dataset.data.values.astype(float)
 y = dataset.target.values
@@ -170,13 +170,13 @@ rf_classcond.predict_p(X_test, y_test, online=True)
 ```
 
 ```numpy
-array([[8.13837566e-05, 8.86436603e-01],
-       [6.60518590e-02, 4.02350293e-01],
-       [4.28646783e-01, 4.29930890e-02],
+array([[0.01179923, 0.91376964],
+       [0.06997053, 0.39823081],
+       [0.43432425, 0.0446698 ],
        ...,
-       [7.05118942e-01, 9.45056960e-03],
-       [7.27003479e-01, 1.27347189e-02],
-       [1.76403756e-01, 1.21434924e-01]])
+       [0.69912443, 0.01199548],
+       [0.70007216, 0.01196775],
+       [0.17997245, 0.11987124]])
 ```
 
 Similarly, we can evaluate the conformal classifier while using online
@@ -454,10 +454,39 @@ for the CPD of a random test instance:
 
 ![cpd](https://user-images.githubusercontent.com/7838741/235081969-328d7a23-26c9-4799-a246-8c35fd7ac88e.png)
 
-You are welcome to download and try out `crepes`; you may find the following notebooks helpful:
+We may also test the exchangeability assumption using conformal test martingales. Assume that we
+have obtained p-values using a semi-online conformal predictor, e.g.,
+
+```python
+p_values = rf.predict_p(X_test, y_test, online=True)
+```
+
+We can now test if the p-values are distributed independently and uniformly over [0, 1] using any of the
+available conformal test martingale algorithms in ``crepes.martingales``. If the exchangeability assumption
+holds then the probability of observing a martingale value exceeding c is less than or equal to 1/c.
+This means that probability of incorrectly rejecting the assumption is bounded by 1/c. We here show
+how to obtain martingale values for the above p-values using Simple Jumper:
+
+```python
+from crepes.martingales import SimpleJumper
+
+martingale_values = SimpleJumper().apply(p_values)
+```
+
+We may also ask for the lowest index for which the martingale value exceeds a specified threshold:
+
+```python
+SimpleJumper().apply(np.sort(p_values), c=100)
+```
+
+Since the p-values are sorted in the above example, the conformal test martingale will detect a violation of the exchangeability assumption early on and return a low index. If instead the original (unsorted) p-values are provided, it is very likely that the conformal test martingale will not detect any data drift and will just return the length of the p-value vector.
+
+You are very welcome to download and try out `crepes`; you may find the following notebooks helpful:
 
 [crepes using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb)
 
 [crepes using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb)
+
+[Conformal test martingales](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb)
 
 You may also take a look at the [slides from my tutorial at COPA 2024](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.ipynb>).
