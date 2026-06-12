@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.9.1 (12/6/2026)
+
+### Features
+
+- The method `predict_set` of `WrapClassifier` now includes an argument `labels`, which if set to True (the default), outputs prediction sets in the form of a list of lists of labels, relying on the labels being provided in the attribute `classes_` of the wrapped learner. Alternatively, label names can be specified by providing a list or array of labels (overriding any label names provided by `classes_`). If instead a binary array indicating presence of labels in each prediction set is desired, `labels` should set to False. Note that the default behavior of `predict_set` of `WrapClassifier` is different from in previous versions, where the only option was to get prediction sets in the form of a binary array.
+
+- The method `predict_set` of `ConformalClassifier` now includes an argument `labels`, which if set to None (the default), generates prediction sets in the form of a binary array. If instead `labels` is set to a list or array of labels, the output prediction sets will be represented by a list of lists of labels.
+
+- The method `semi_online_p_values` in the module `crepes.martingales` for generating (smoothed) p-values from non-conformity scores in the semi-online mode has been optimized for non-unique non-conformity scores, resulting in O(n * k) where k is number of unique values among the n non-conformity scores. It is enabled through the option `optimized=True`. Thanks to @claude for contributing with the optimization.
+
+- The option `return_index` is now available for the `apply` methods of `SimpleJumper`, `SleeperStayer`, `SleeperDrifter` and `CompositeMartingale` in the module `crepes.martingales`, which if set to True, results in that the index of the first martingale value that reaches a specified threshold (c) is returned. By setting `return_index` to False, martingale values up to and including the first that reaches a specified threshold will instead be returned. In the previous version, an index was always returned when a threshold was specified. 
+
+- The `apply` method of the `CompositeMartingale` has been optimized by terminating the computation of each of the k martingales when reaching k * c, for a specified threshold c.
+
+- The `binning` method in `crepes.extras` has been modified to allow for setting a factor (`epsilon`) to use when multiplying with a random number to handle ties. By setting `epsilon` to 0, random tiebreaking is not employed. The `binning` method now also includes an additional argument `min_size` (default=None), which results in equal-sized binning with the largest number of bins such that the minimum number of values in each bin is at least `min_size`. A warning will be issued when forming bins if the provided number of bins is larger than the number of values (or the number of unique values if epsilon=0), as well as if `min_size` allows for forming one bin only. Thanks to @rudymatela for highlighting issues with the `binning` method.
+
+### Fixes
+
+- A minor bug in the documentation has been fixed. Thanks to @KonstantinosTsoumas for pointing it out.
+
 ## v0.9.0 (8/10/2025)
 
 ### Features

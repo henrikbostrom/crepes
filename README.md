@@ -1,12 +1,12 @@
 <p align="center"><a href="https://crepes.readthedocs.io"><img alt="crepes" src="https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_logo.png"></a></p>
 
 <p align="center">
-<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.9.0-brightgreen" alt="PyPI version" height=20 align="center"></a>
-<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.9.0-orange" alt="conda-forge version" height=20 align="center"></a>
+<a href="https://pypi.org/project/crepes/"><img src="https://img.shields.io/badge/pypi package-0.9.1-brightgreen" alt="PyPI version" height=20 align="center"></a>
+<a href="https://anaconda.org/conda-forge/crepes"><img src="https://img.shields.io/badge/conda--forge-0.9.1-orange" alt="conda-forge version" height=20 align="center"></a>
 <a href="https://pepy.tech/project/crepes"><img src="https://static.pepy.tech/badge/crepes?dummy=unused" alt="Downloads" height=20 align="center"></a>
 <a href="https://crepes.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/crepes/badge/?version=latest" alt="docs status" height=20 align="center"></a> 
 <a href="https://github.com/henrikbostrom/crepes/tree/main?tab=readme-ov-file#BSD-3-Clause-1-ov-file"><img src="https://img.shields.io/badge/license-BSD--3--clause-blue" alt="License" height=20 align="center"></a>
-<a href="https://github.com/henrikbostrom/crepes/releases/tag/v0.9.0"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
+<a href="https://github.com/henrikbostrom/crepes/releases/tag/v0.9.1"><img src="https://img.shields.io/github/release-date/henrikbostrom/crepes" alt="Release date" height=20 align="center"></a>
 </p>
 
 <br>
@@ -100,22 +100,38 @@ array([[0.00427104, 0.74842304],
        [0.29601955, 0.07766093]])
 ```
 
-We can also get prediction sets, represented by binary vectors
-indicating presence (1) or absence (0) of the class labels that
-correspond to the columns, here at the 90% confidence level:
+We can also get prediction sets, here at the 99% confidence level:
 
 ```python
-rf.predict_set(X_test, confidence=0.9)
+rf.predict_set(X_test, confidence=0.99)
+```
+
+```numpy
+[['2'],
+ ['1', '2'],
+ ['1', '2'],
+ ...,
+ ['1'],
+ ['1'],
+ ['1', '2']]
+```
+
+If we prefer the prediction sets to be represented by binary vectors
+indicating presence (1) or absence (0) of the class labels that
+correspond to the columns, we can request this by:
+
+```python
+rf.predict_set(X_test, labels=False, confidence=0.99)
 ```
 
 ```numpy
 array([[0, 1],
-       [0, 1],
-       [1, 0],
+       [1, 1],
+       [1, 1],
        ...,
        [1, 0],
        [1, 0],
-       [1, 0]])
+       [1, 1]])
 ```
 
 Since we have access to the true class labels, we can evaluate the
@@ -128,12 +144,12 @@ rf.evaluate(X_test, y_test, confidence=0.99)
 
 ```python
 {'error': 0.007575757575757569,
- 'avg_c': 1.6325757575757576,
- 'one_c': 0.36742424242424243,
+ 'avg_c': 1.6136363636363635,
+ 'one_c': 0.38636363636363635,
  'empty': 0.0,
- 'ks_test': 0.0033578466103315894,
- 'time_fit': 1.9073486328125e-06,
- 'time_evaluate': 0.04798746109008789}
+ 'ks_test': 0.0030978768439862566,
+ 'time_fit': 9.5367431640625e-07,
+ 'time_evaluate': 0.024116039276123047}
 ```
 
 To control the error level across different groups of objects of
@@ -155,13 +171,13 @@ rf_mond.predict_set(X_test)
 ```
 
 ```numpy
-array([[0, 1],
-       [1, 1],
-       [1, 0],
-       ...,
-       [1, 0],
-       [1, 0],
-       [1, 1]])
+[['2'],
+ ['1', '2'],
+ ['1'],
+ ...,
+ ['1'],
+ ['1'],
+ ['1', '2']]
 ```
 
 The class-conditional conformal classifier is a special type of Mondrian
@@ -513,9 +529,9 @@ Since the p-values are sorted in the above example, the conformal test martingal
 
 ## Examples
 
-For additional examples of how to use the package and module, see [the documentation](https://crepes.readthedocs.io/en/latest/), [this Jupyter notebook using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb), [this Jupyter notebook using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb) and [this Jupyter notebook on the use of conformal test martingales](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb).
+For additional examples of how to use the package and module, see [the documentation](https://crepes.readthedocs.io/en/latest/). Examples on how to wrap learners to obtain conformal predictors are given in [this Jupyter notebook ](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb), while [this Jupyter notebook](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb) shows how to obtain conformal predictors that are decoupled from the learners. For examples on conformal test martingales, you may consult [this Jupyter notebook](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb).
 
-You may also take a look at the [slides from my tutorial at COPA 2024](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.ipynb>).
+You may also take a look at some [tutorial slides](<https://github.com/henrikbostrom/crepes/blob/main/docs/Tutorial 2026-06-02.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/Tutorial 2026-06-02.ipynb>).
 
 ## Citing crepes
 
@@ -575,5 +591,5 @@ Bibtex entry:
 - - -
 
 Author: Henrik Boström (bostromh@kth.se)
-Copyright 2025 Henrik Boström
+Copyright 2026 Henrik Boström
 License: BSD 3 clause
