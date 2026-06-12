@@ -6,7 +6,7 @@ categorizers, with and without out-of-bag predictions.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2025 Henrik Boström
+Copyright 2026 Henrik Boström
 
 License: BSD 3 clause
 
@@ -14,9 +14,12 @@ License: BSD 3 clause
 
 import numpy as np
 import pandas as pd
+import warnings
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import MinMaxScaler
+
+warnings.simplefilter("always", UserWarning)
 
 def hinge(X_prob, classes=None, y=None):
     """
@@ -141,7 +144,7 @@ def margin(X_prob, classes=None, y=None):
             for i in range(len(X_prob))])
     return result
 
-def binning(values, bins=10):
+def binning(values, bins=10, min_size=None, epsilon=1e-9, seed=None):
     """
     Provides bins for a set of values.
 
@@ -151,7 +154,14 @@ def binning(values, bins=10):
         set of values
     bins : int or array-like of shape (n_bins,), default=10
         number of bins to use for equal-sized binning or threshold values 
-        to use for binning
+        to use for binning, used only if min_size=None 
+    min_size : int, default=None
+        equal-sized binning with the largest number of bins such that the
+        minimum number of values in each bin is at least min_size 
+    epsilon : float, default=1e-9
+        number to multiply with random uniformaly sampled values from (0,1) 
+    seed : int, default=None
+        set random seed
         
     Returns
     -------
@@ -189,22 +199,56 @@ def binning(values, bins=10):
 
     Note
     ----
-    A very small random number is added to each value when forming bins
-    for the purpose of tie-breaking.
-    """
-    mod_values = values+np.random.rand(len(values))*1e-9
-    # Adding a very small random number, which a.s. avoids ties
-    # without affecting performance
-    if isinstance(bins, int):
-        assigned_bins, bin_boundaries = pd.qcut(mod_values,bins,
-                                                labels=False,retbins=True,
+    Any specified value for ``min_size`` will take precedence over any
+    value for ``bins``, including the default.
+
+    Note
+    ----
+    A vector of uniformly sampled random values is multiplied with ``epsilon`` and
+    added to the values before forming bins for the purpose of tie-breaking.
+    To override this, set ``epsilon`` to 0.
+
+    Note
+    ----
+    When forming bins, a warning will be issued if the provided number of bins is
+    larger than the number of values (or the number of unique values if epsilon=0).    
+    """ 
+    if seed is not None:
+        random_state = np.random.get_state()
+        np.random.seed(seed)
+    mod_values = values + np.random.rand(len(values)) * epsilon
+    if seed is not None:
+        np.random.set_state(random_state)
+    if min_size is not None:
+        if len(values)//min_size == 1:
+            warnings.warn("the number of values allows for forming" \
+                          " one bin only with the selected min_size")
+        bins = len(values)//min_size
+        assigned_bins, bin_boundaries = pd.qcut(mod_values,
+                                                bins,
+                                                labels=False,
+                                                retbins=True,
+                                                duplicates="drop",
+                                                precision=12)
+        bin_boundaries[0] = -np.inf
+        bin_boundaries[-1] = np.inf
+        return assigned_bins, bin_boundaries
+    elif isinstance(bins, int):
+        if (bins > len(values) or
+            epsilon == 0 and bins > len(np.unique(values))):
+               warnings.warn("the number of unique values is less than" \
+                             " the selected number of bins")
+        assigned_bins, bin_boundaries = pd.qcut(mod_values,
+                                                bins,
+                                                labels=False,
+                                                retbins=True,
                                                 duplicates="drop",
                                                 precision=12)
         bin_boundaries[0] = -np.inf
         bin_boundaries[-1] = np.inf
         return assigned_bins, bin_boundaries
     else:
-        assigned_bins = pd.cut(mod_values,bins,labels=False,retbins=False)
+        assigned_bins = pd.cut(mod_values, bins, labels=False, retbins=False)
         return assigned_bins
 
 class MondrianCategorizer():

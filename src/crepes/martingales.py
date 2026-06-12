@@ -4,7 +4,7 @@ Functions for generating conformal test martingales.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2025 Henrik Boström
+Copyright 2026 Henrik Boström
 
 License: BSD 3 clause
 
@@ -266,7 +266,7 @@ class SimpleJumper(Martingale):
         self.J = J
         self.bf = bf
         
-    def apply(self, p_values, c=None):
+    def apply(self, p_values, c=None, return_index=True):
         """
         Generate a vector of martingale values, given a vector of p-values.
 
@@ -276,15 +276,20 @@ class SimpleJumper(Martingale):
             p-values
         c : integer, default=None
             threshold value
+        return_index : bool, default=True
+            return index, if c is not None
 
         Returns
         -------
-        martingales : ndarray of shape (n_values,)
-            martingale values, returned only if c is None
+        martingales : ndarray of shape (m_values,)
+            martingale values, where m_values <= n_values, and the last
+            value equals or exceeds c, if c is not None and the threshold
+            was reached, and m_values = n_values otherwise, returned if
+            c is None or return_index=False
         index : integer, 0 <= index <= n_values
             index of the first martingale value that is equal to or greater
             than c, if any, and index = n_values, otherwise, returned only if
-            c is not None 
+            c is not None and return_index=True
         
         Examples
         --------
@@ -318,9 +323,12 @@ class SimpleJumper(Martingale):
             S[i] = np.sum(C)
             if c is not None:
                 if S[i] >= c:
-                    return i
+                    if return_index:
+                        return i
+                    else:
+                        return S[:i+1]
             C = (1-J)*C + (J/len(C))*S[i]
-        if c is not None:
+        if c is not None and return_index:
             return len(p_values)
         else:
             return S
@@ -370,7 +378,7 @@ class SleeperStayer(Martingale):
         self.R = R
         self.bf = bf
         
-    def apply(self, p_values, c=None):
+    def apply(self, p_values, c=None, return_index=True):
         """
         Generate a vector of martingale values, given a vector of p-values.
 
@@ -380,16 +388,21 @@ class SleeperStayer(Martingale):
             p-values
         c : integer, default=None
             threshold value
+        return_index : bool, default=True
+            return index, if c is not None
 
         Returns
         -------
-        martingales : ndarray of shape (n_values,)
-            martingale values, returned only if c is None
+        martingales : ndarray of shape (m_values,)
+            martingale values, where m_values <= n_values, and the last
+            value equals or exceeds c, if c is not None and the threshold
+            was reached, and m_values = n_values otherwise, returned if
+            c is None or return_index=False
         index : integer, 0 <= index <= n_values
             index of the first martingale value that is equal to or greater
             than c, if any, and index = n_values, otherwise, returned only if
-            c is not None 
-        
+            c is not None and return_index=True
+
         Examples
         --------
         Assuming that ``p_values`` is a vector of p-values, then martingale
@@ -423,10 +436,13 @@ class SleeperStayer(Martingale):
             S[i] = S_box + np.sum(C)
             if c is not None:
                 if S[i] >= c:
-                    return i
+                    if return_index:
+                        return i
+                    else:
+                        return S[:i+1]
             C += R*S_box/len(C)
             S_box *= (1-R)
-        if c is not None:
+        if c is not None and return_index:
             return len(p_values)
         else:
             return S
@@ -484,7 +500,7 @@ class SleeperDrifter(Martingale):
         self.bf = bf
         self.drift = drift
         
-    def apply(self, p_values, c=None):
+    def apply(self, p_values, c=None, return_index=True):
         """
         Generate a vector of martingale values, given a vector of p-values.
 
@@ -494,16 +510,20 @@ class SleeperDrifter(Martingale):
             p-values
         c : integer, default=None
             threshold value
+        return_index : bool, default=True
+            return index, if c is not None
 
         Returns
         -------
-        martingales : ndarray of shape (n_values,)
-            martingale values, returned only if c is None
+        martingales : ndarray of shape (m_values,)
+            martingale values, where m_values <= n_values, and each
+            value is less than c, if c is not None, and m_values = n_values
+            otherwise, returned if c is None or return_index=False
         index : integer, 0 <= index <= n_values
             index of the first martingale value that is equal to or greater
             than c, if any, and index = n_values, otherwise, returned only if
-            c is not None 
-        
+            c is not None and return_index=True
+
         Examples
         --------
         Assuming that ``p_values`` is a vector of p-values, then martingale
@@ -545,11 +565,14 @@ class SleeperDrifter(Martingale):
             S[i] = S_box + np.sum(C)
             if c is not None:
                 if S[i] >= c:
-                    return i
+                    if return_index:
+                        return i
+                    else:
+                        return S[:i+1]
             if (i+1) % M == 0:
                 C[(i+1)//M] = R*S_box/C.shape[1]
                 S_box *= (1-R)
-        if c is not None:
+        if c is not None and return_index:
             return len(p_values)
         else:
             return S
@@ -583,7 +606,7 @@ class CompositeMartingale(Martingale):
         """
         self.Martingales = Martingales
         
-    def apply(self, p_values, c=None):
+    def apply(self, p_values, c=None, return_index=True):
         """
         Generate a vector of martingale values, given a vector of p-values.
 
@@ -593,16 +616,21 @@ class CompositeMartingale(Martingale):
             p-values
         c : integer, default=None
             threshold value
+        return_index : bool, default=True
+            return index, if c is not None
 
         Returns
         -------
-        martingales : ndarray of shape (n_values,)
-            martingale values, returned only if c is None
+        martingales : ndarray of shape (m_values,)
+            martingale values, where m_values <= n_values, and the last
+            value equals or exceeds c, if c is not None and the threshold
+            was reached, and m_values = n_values otherwise, returned if
+            c is None or return_index=False
         index : integer, 0 <= index <= n_values
             index of the first martingale value that is equal to or greater
             than c, if any, and index = n_values, otherwise, returned only if
-            c is not None 
-        
+            c is not None and return_index=True
+
         Examples
         --------
         Assuming that ``p_values`` is a vector of p-values, then martingale
@@ -620,20 +648,34 @@ class CompositeMartingale(Martingale):
 
            i = cm.apply(p_values, c=100)
         """
-        S = np.zeros(len(p_values))
-        for M in self.Martingales:
-            S += M.apply(p_values)
-        martingales = S/len(self.Martingales)
         if c is not None:
+            S = []
+            for M in self.Martingales:
+                S.append(M.apply(p_values,
+                                 c=len(self.Martingales)*c,
+                                 return_index=False))
+            m = min([len(s) for s in S])
+            S = np.sum([s[:m] for s in S], axis=0) 
+            martingales = S/len(self.Martingales)
             gt = np.argwhere(martingales >= c)
             if len(gt) > 0:
-                return gt[0,0]
+                if return_index:
+                    return gt[0,0]
+                else:
+                    return martingales[:gt[0,0]+1]
             else:
-                return len(p_values)
+                if return_index:
+                    return len(p_values)
+                else:
+                    return martingales
         else:
+            S = np.zeros(len(p_values))
+            for M in self.Martingales:
+                S += M.apply(p_values)
+                martingales = S/len(self.Martingales)
             return martingales
 
-def semi_online_p_values(alphas, seed=None):
+def semi_online_p_values(alphas, seed=None, optimized=False):
     """
     Computes semi-online p-values from a vector of non-conformity scores.
 
@@ -643,6 +685,8 @@ def semi_online_p_values(alphas, seed=None):
          non-conformity scores
     seed : int, default=None
          set random seed
+    optimized : bool, default=False
+         speed up computation for non-unique alphas
 
     Returns
     -------
@@ -667,16 +711,33 @@ def semi_online_p_values(alphas, seed=None):
     Note
     ----
     The output p-values are smoothed and generated in the semi-online mode
-    according to the terminology in in ALRW, 2ed, p., 111.
+    according to the terminology in ALRW, 2ed, p., 111.
     """
     if seed is not None:
         random_state = np.random.get_state()
         np.random.seed(seed)
-    p_values = np.zeros(len(alphas))
-    thetas = np.random.rand(len(alphas))
-    for q in range(len(alphas)):
-       p_values[q] = (np.sum(alphas[:q] > alphas[q]) + \
-                      thetas[q]*(1+np.sum(alphas[:q] == alphas[q])))/(q+1)
+    alphas = np.asarray(alphas, dtype=float)
+    n = len(alphas)
+    thetas = np.random.rand(n)
     if seed is not None:
         np.random.set_state(random_state)
-    return p_values        
+    if optimized:
+        q = np.arange(1, n + 1)
+        unique = np.unique(alphas)
+        k = len(unique)
+        if k < n and k * n <= 100_000_000:
+            alpha_indices = np.searchsorted(unique, alphas)
+            bool_indices = alpha_indices[:, None] == np.arange(k)
+            cum = np.vstack([np.zeros(k, dtype=np.intp),
+                             np.cumsum(bool_indices, axis=0)[:-1]])
+            prefix = np.cumsum(cum, axis=1)
+            count_gt = np.arange(n) - prefix[np.arange(n), alpha_indices]
+            count_eq = cum[np.arange(n), alpha_indices]
+            return (count_gt + thetas * (1 + count_eq)) / q
+    p_values = np.empty(n)
+    for i, alpha in enumerate(alphas):
+        preceding = alphas[:i]
+        count_gt = np.sum(preceding > alpha)
+        count_eq = np.sum(preceding == alpha)
+        p_values[i] = (count_gt + thetas[i] * (1 + count_eq)) / (i + 1)
+    return p_values

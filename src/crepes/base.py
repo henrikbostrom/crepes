@@ -8,13 +8,13 @@ guarantees.
 
 Author: Henrik Boström (bostromh@kth.se)
 
-Copyright 2025 Henrik Boström
+Copyright 2026 Henrik Boström
 
 License: BSD 3 clause
 
 """
 
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 
 import numpy as np
 import pandas as pd
@@ -267,8 +267,8 @@ class ConformalClassifier(ConformalPredictor):
         self.time_predict = toc-tic            
         return p_values
 
-    def predict_set(self, alphas, bins=None, confidence=0.95, smoothing=True,
-                    seed=None):
+    def predict_set(self, alphas, bins=None, labels=None, confidence=0.95,
+                    smoothing=True, seed=None):
         """
         Obtain prediction sets using conformal classifier.
 
@@ -278,6 +278,8 @@ class ConformalClassifier(ConformalPredictor):
             non-conformity scores
         bins : array-like of shape (n_samples,), default=None
             Mondrian categories
+        labels : array-like of shape (n_classes,), default=None
+            labels to include in prediction sets
         confidence : float in range (0,1), default=0.95
             confidence level
         smoothing : bool, default=True
@@ -287,8 +289,9 @@ class ConformalClassifier(ConformalPredictor):
 
         Returns
         -------
-        prediction sets : ndarray of shape (n_samples, n_classes)
-            prediction sets
+        prediction sets : ndarray of shape (n_samples, n_classes) or list
+            prediction sets, in the form of a binary array if labels are not
+            specified, and otherwise in the form of a list of lists of labels
 
         Examples
         --------
@@ -328,17 +331,22 @@ class ConformalClassifier(ConformalPredictor):
             alphas = np.array(alphas)
         if type(bins) == list:
             bins = np.array(bins)
+        if type(labels) == list:
+            labels = np.array(labels)
         if seed is None:
             seed = self.seed
         p_values = p_values_batch(self.alphas, alphas, self.bins, bins,
                                   smoothing, seed)
         prediction_sets = (p_values >= 1-confidence).astype(int)
+        if labels is not None:
+            prediction_sets = [list(labels[s]) for s in prediction_sets.astype(bool)]
         toc = time.time()
         self.time_predict = toc-tic            
         return prediction_sets
 
-    def predict_set_online(self, alphas, classes, y, bins=None, confidence=0.95,
-                           smoothing=True, seed=None, warm_start=True):
+    def predict_set_online(self, alphas, classes, y, bins=None, labels=None,
+                           confidence=0.95, smoothing=True, seed=None,
+                           warm_start=True):
         """
         Obtain prediction sets using conformal classifier,
         computed using online calibration.
@@ -353,6 +361,8 @@ class ConformalClassifier(ConformalPredictor):
             correct class labels        
         bins : array-like of shape (n_samples,), default=None
             Mondrian categories
+        labels : array-like of shape (n_classes,), default=None
+            labels to include in prediction sets
         confidence : float in range (0,1), default=0.95
             confidence level
         smoothing : bool, default=True
@@ -364,8 +374,9 @@ class ConformalClassifier(ConformalPredictor):
 
         Returns
         -------
-        prediction sets : ndarray of shape (n_samples, n_classes)
-            prediction sets
+        prediction sets : ndarray of shape (n_samples, n_classes) or list
+           prediction sets, in the form of a binary array if labels are not
+           specified, and otherwise in the form of a list of lists of labels
 
         Examples
         --------
@@ -406,6 +417,8 @@ class ConformalClassifier(ConformalPredictor):
             alphas = np.array(alphas)
         if type(bins) == list:
             bins = np.array(bins)
+        if type(labels) == list:
+            labels = np.array(labels)
         if seed is None:
             seed = self.seed
         if warm_start:
@@ -418,6 +431,8 @@ class ConformalClassifier(ConformalPredictor):
                                                   alphas_cal, bins_cal,
                                                   True, smoothing, seed)
         prediction_sets = (p_values >= 1-confidence).astype(int)
+        if labels is not None:
+            prediction_sets = [list(labels[s]) for s in prediction_sets.astype(bool)]
         toc = time.time()
         self.time_predict = toc-tic            
         return prediction_sets
@@ -3346,7 +3361,7 @@ class WrapClassifier():
            from sklearn.ensemble import RandomForestClassifier
            from crepes import WrapClassifier
 
-           rf = Wrap(RandomForestClassifier())
+           rf = WrapClassifier(RandomForestClassifier())
            rf.fit(X_train, y_train)
            
         Note
@@ -3673,7 +3688,7 @@ class WrapClassifier():
         self.time_predict = toc-tic            
         return p_values
     
-    def predict_set(self, X, y=None, confidence=0.95, smoothing=True,
+    def predict_set(self, X, y=None, labels=True, confidence=0.95, smoothing=True,
                     seed=None, online=False, warm_start=True):
         """
         Obtain prediction sets using conformal classifier.
@@ -3684,6 +3699,9 @@ class WrapClassifier():
            set of objects
         y : array-like of shape (n_samples,), default=None
             correct class labels; used only if online=True
+        labels : bool or array-like of shape (n_classes,), default=True
+            whether to output a list of lists of labels or a
+            binary array (if labels=False)
         confidence : float in range (0,1), default=0.95
             confidence level
         smoothing : bool, default=True
@@ -3697,10 +3715,13 @@ class WrapClassifier():
         
         Returns
         -------
-        prediction sets : ndarray of shape (n_values, n_classes)
-            prediction sets, where the value 1 (0) indicates
-            that the class label is included (excluded), i.e.,
-            the corresponding p-value is less than 1-confidence
+        prediction sets : ndarray of shape (n_values, n_classes) or list
+            prediction sets, where the value 1 (0) in the binary array
+            indicates that the class label is included (excluded), i.e.,
+            the corresponding p-value is less than 1-confidence; if
+            labels=True or a list/array of labels, the output is a list
+            of length n_values, where each element is a list of up to
+            n_classes labels
 
         Examples
         --------
@@ -3731,6 +3752,13 @@ class WrapClassifier():
         ----
         If a value for ``seed`` is given, it will take precedence over any
         ``seed`` value given in the call to ``calibrate``.
+
+        Note
+        ----
+        If ``labels=True``, then the attribute ``classes_`` from the wrapped learner
+        is used to obtain the label names. If this attribute is missing (or you want
+        to use other names), the labels may be specified as a list, e.g.,
+        ``labels = ["pos", "neg"]``
         """
         if not self.calibrated and not online:
             raise RuntimeError(("Batch predictions requires a calibrated "
@@ -3741,6 +3769,10 @@ class WrapClassifier():
         if seed is not None:
             random_state = np.random.get_state()
             np.random.seed(seed)
+        if labels is True:
+            labels = self.learner.classes_
+        elif labels is False:
+            labels = None 
         alphas = self.nc(self.learner.predict_proba(X))
         classes = self.learner.classes_
         if not online:
@@ -3749,8 +3781,10 @@ class WrapClassifier():
                     self.cc.predict_set(alphas,
                                         np.full(len(X),
                                                 classes[c]),
-                                        confidence, smoothing)[:, c]
+                                        None, confidence, smoothing)[:, c]
                     for c in range(len(classes))]).T
+                if labels is not None:
+                    prediction_sets = [list(labels[s]) for s in prediction_sets.astype(bool)]
             else:
                 if isinstance(self.mc, MondrianCategorizer):
                     bins = self.mc.apply(X)
@@ -3758,7 +3792,7 @@ class WrapClassifier():
                     bins = self.mc(X)
                 else:
                     bins = None
-                prediction_sets = self.cc.predict_set(alphas, bins,
+                prediction_sets = self.cc.predict_set(alphas, bins, labels,
                                                       confidence, smoothing)
         else:
             if self.class_cond:
@@ -3772,6 +3806,8 @@ class WrapClassifier():
                                                       alphas_cal, y_cal,
                                                       True, smoothing, seed)
                 prediction_sets = (p_values >= 1-confidence).astype(int)
+                if labels is not None:
+                    prediction_sets = [list(labels[s]) for s in prediction_sets.astype(bool)]
             else:
                 if isinstance(self.mc, MondrianCategorizer):
                     bins = self.mc.apply(X)
@@ -3780,7 +3816,7 @@ class WrapClassifier():
                 else:
                     bins = None
                 prediction_sets = self.cc.predict_set_online(alphas, classes, y,
-                                                             bins, confidence,
+                                                             bins, labels, confidence,
                                                              smoothing, seed,
                                                              warm_start)
         if seed is not None:
