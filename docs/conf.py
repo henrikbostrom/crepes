@@ -17,14 +17,14 @@ sys.path.insert(0, os.path.abspath('../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'crepes'
-copyright = '2025, Henrik Boström'
+copyright = '2026, Henrik Boström'
 author = 'Henrik Boström'
 
 # The short X.Y version
-version = '0.9.0'
+version = '0.9.1'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9.0'
+release = '0.9.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -107,3 +107,5 @@ autosummary_imported_members = True
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+html_show_sourcelink = False

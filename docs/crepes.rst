@@ -1,5 +1,5 @@
-The crepes package
-==================
+crepes
+======
 
 .. module:: crepes
 

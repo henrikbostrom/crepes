@@ -1,5 +1,5 @@
-The crepes.martingales module
-=============================
+crepes.martingales
+==================
 
 .. module:: crepes.martingales
    

@@ -70,22 +70,38 @@ array([[0.00427104, 0.74842304],
        [0.29601955, 0.07766093]])
 ```
 
-We can also get prediction sets, represented by binary vectors
-indicating presence (1) or absence (0) of the class labels that
-correspond to the columns, here at the 90% confidence level:
+We can also get prediction sets, here at the 99% confidence level:
 
 ```python
-rf.predict_set(X_test, confidence=0.9)
+rf.predict_set(X_test, confidence=0.99)
+```
+
+```numpy
+[['2'],
+ ['1', '2'],
+ ['1', '2'],
+ ...,
+ ['1'],
+ ['1'],
+ ['1', '2']]
+```
+
+If we prefer the prediction sets to be represented by binary vectors
+indicating presence (1) or absence (0) of the class labels that
+correspond to the columns, we can request this by:
+
+```python
+rf.predict_set(X_test, labels=False, confidence=0.99)
 ```
 
 ```numpy
 array([[0, 1],
-       [0, 1],
-       [1, 0],
+       [1, 1],
+       [1, 1],
        ...,
        [1, 0],
        [1, 0],
-       [1, 0]])
+       [1, 1]])
 ```
 
 Since we have access to the true class labels, we can evaluate the
@@ -125,13 +141,13 @@ rf_mond.predict_set(X_test)
 ```
 
 ```numpy
-array([[0, 1],
-       [1, 1],
-       [1, 0],
-       ...,
-       [1, 0],
-       [1, 0],
-       [1, 1]])
+[['2'],
+ ['1', '2'],
+ ['1'],
+ ...,
+ ['1'],
+ ['1'],
+ ['1', '2']]
 ```
 
 The class-conditional conformal classifier is a special type of Mondrian
@@ -481,12 +497,12 @@ SimpleJumper().apply(np.sort(p_values), c=100)
 
 Since the p-values are sorted in the above example, the conformal test martingale will detect a violation of the exchangeability assumption early on and return a low index. If instead the original (unsorted) p-values are provided, it is very likely that the conformal test martingale will not detect any data drift and will just return the length of the p-value vector.
 
-You are very welcome to download and try out `crepes`; you may find the following notebooks helpful:
+You are very welcome to download and try out `crepes`. You may find the following notebooks helpful:
 
-[crepes using WrapClassifier and WrapRegressor](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb)
+* [how to wrap learners to obtain conformal predictors](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb_wrap.ipynb)
 
-[crepes using ConformalClassifier, ConformalRegressor, and ConformalPredictiveSystem](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb)
+* [how to obtain conformal predictors that are decoupled from the learners](https://github.com/henrikbostrom/crepes/blob/main/docs/crepes_nb.ipynb)
 
-[Conformal test martingales](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb)
+* [how to test the echangeability assumption using conformal test martingales](https://github.com/henrikbostrom/crepes/blob/main/docs/martingales_nb.ipynb)
 
-You may also take a look at the [slides from my tutorial at COPA 2024](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/COPA Tutorial 2024.ipynb>).
+You may also take a look at some [tutorial slides](<https://github.com/henrikbostrom/crepes/blob/main/docs/Tutorial 2026-06-02.pdf>) and the accompanying [Jupyter notebook](<https://github.com/henrikbostrom/crepes/blob/main/docs/Tutorial 2026-06-02.ipynb>).

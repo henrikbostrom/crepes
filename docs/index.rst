@@ -29,11 +29,11 @@ you may use the classes in ``crepes.martingales``.
     :maxdepth: 1
     
     Getting started <getting_started.rst>
-    The crepes package <crepes>	      
-    The crepes.extras module <crepes.extras>
-    The crepes.martingales module <crepes.martingales>
-    Examples <crepes_nb_wrap.ipynb>
-    More examples <crepes_nb.ipynb>
+    crepes <crepes>	      
+    crepes.extras <crepes.extras>
+    crepes.martingales <crepes.martingales>
+    Wrapping Classifiers and Regressors <crepes_nb_wrap.ipynb>
     Conformal test martingales <martingales_nb.ipynb>
+    Decoupling Conformal Predictors from Learners <crepes_nb.ipynb>
     Citing crepes <citing.md>
     References <references.md>
