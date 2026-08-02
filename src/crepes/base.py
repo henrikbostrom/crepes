@@ -3718,10 +3718,10 @@ class WrapClassifier():
         prediction sets : ndarray of shape (n_values, n_classes) or list
             prediction sets, where the value 1 (0) in the binary array
             indicates that the class label is included (excluded), i.e.,
-            the corresponding p-value is less than 1-confidence; if
-            labels=True or a list/array of labels, the output is a list
-            of length n_values, where each element is a list of up to
-            n_classes labels
+            the corresponding p-value is greater than or equal to
+            1-confidence; if labels=True or a list/array of labels, the
+            output is a list of length n_values, where each element is a
+            list of up to n_classes labels
 
         Examples
         --------
