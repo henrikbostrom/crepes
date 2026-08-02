@@ -337,6 +337,8 @@ class ConformalClassifier(ConformalPredictor):
             seed = self.seed
         p_values = p_values_batch(self.alphas, alphas, self.bins, bins,
                                   smoothing, seed)
+        check_calibration_size(self.alphas, self.bins, bins, confidence,
+                               smoothing)
         prediction_sets = (p_values >= 1-confidence).astype(int)
         if labels is not None:
             prediction_sets = [list(labels[s]) for s in prediction_sets.astype(bool)]
@@ -517,7 +519,9 @@ class ConformalClassifier(ConformalPredictor):
         if not online:
             p_values = self.predict_p(alphas, bins, True, classes, y,
                                       smoothing, seed)
-            prediction_sets = (p_values >= 1-confidence).astype(int)        
+            check_calibration_size(self.alphas, self.bins, bins, confidence,
+                                   smoothing)
+            prediction_sets = (p_values >= 1-confidence).astype(int)
         else:
             p_values = self.predict_p_online(alphas, classes, y, bins, True,
                                              smoothing, seed, warm_start)
@@ -552,6 +556,33 @@ def get_classification_results(prediction_sets, p_values, classes, y, metrics):
                                                   class_indexes],
                                          "uniform").pvalue
     return test_results
+
+def check_calibration_size(alphas_cal, bins_cal, bins_test, confidence,
+                           smoothing):
+    if smoothing:
+        return
+    if type(bins_cal) == list:
+        bins_cal = np.array(bins_cal)
+    if bins_cal is None:
+        if 1/(len(alphas_cal)+1) >= 1-confidence:
+            warnings.warn("the no. of calibration examples is too small " \
+                          "for the chosen confidence level; the " \
+                          "prediction sets will be of maximum size")
+    else:
+        bin_values = np.unique(bins_cal if bins_test is None else bins_test)
+        too_small_bins = [b for b in bin_values
+                          if 1/(np.sum(bins_cal == b)+1) >= 1-confidence]
+        if len(too_small_bins) > 0:
+            if len(too_small_bins) < 11:
+                bins_to_show = " ".join([str(b) for b in too_small_bins])
+            else:
+                bins_to_show = " ".join([str(b) for b in
+                                         too_small_bins[:10]]+['...'])
+            warnings.warn("the no. of calibration examples is too " \
+                          "small for the chosen confidence level " \
+                          f"in the following bins: {bins_to_show}; " \
+                          "the corresponding prediction sets will be of " \
+                          "maximum size")
 
 class ConformalRegressor(ConformalPredictor):
     """
@@ -3907,6 +3938,9 @@ class WrapClassifier():
             np.random.seed(seed)
         p_values = self.predict_p(X, y, True, smoothing, seed, online,
                                   warm_start)
+        if not online:
+            check_calibration_size(self.cc.alphas, self.cc.bins, None,
+                                   confidence, smoothing)
         prediction_sets = (p_values >= 1-confidence).astype(int)
         test_results = get_classification_results(prediction_sets,
                                                   p_values,
