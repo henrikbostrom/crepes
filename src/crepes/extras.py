@@ -410,7 +410,7 @@ class MondrianCategorizer():
                 scores = np.array([np.mean(predictions[oob_masks[:,i],i])
                                    for i in range(len(X))])
             else:
-                scores = learner.predict(X)
+                scores = self.learner.predict(X)
             bins = binning(scores, bins=self.bin_thresholds)
         return bins
                 
