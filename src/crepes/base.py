@@ -3052,7 +3052,7 @@ def p_values_online_classification(alphas, classes, y, bins=None,
                      for q in range(len(alphas))])
             else:
                 p_values = np.array(
-                    [np.sum(all_alphas[:start+q+1] >= all_alphas[q])/ \
+                    [np.sum(all_alphas[:start+q+1] >= all_alphas[start+q])/ \
                      (start + q + 1) for q in range(len(alphas))])
     else:
         bin_values, bin_indexes = np.unique(all_bins, return_inverse=True)
@@ -3090,14 +3090,14 @@ def p_values_online_classification(alphas, classes, y, bins=None,
                 bin_alphas = alphas[bin_indexes[start:] == b]
                 bin_start = len(bin_all_alphas) - len(bin_alphas)
                 if all_classes:
-                    p_values_bin = np.array([[
+                    bin_p_values = np.array([[
                         (np.sum(bin_all_alphas[
                             :bin_start+q] >= bin_alphas[q,c]) + 1) \
                         / (bin_start + q + 1)
                         for c in range(bin_alphas.shape[1])]
                                              for q in range(len(bin_alphas))])
                 else:
-                    p_values_bin = np.array([
+                    bin_p_values = np.array([
                         (np.sum(bin_all_alphas[
                             :bin_start+q] >= \
                                 bin_all_alphas[bin_start+q]) + 1) \
