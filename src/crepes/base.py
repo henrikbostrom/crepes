@@ -883,7 +883,8 @@ class ConformalRegressor(ConformalPredictor):
         ----
         In case the specified confidence level is too high in relation to the 
         size of the calibration set, a warning will be issued and the output
-        intervals will be of maximum size.
+        intervals will be of maximum size. The same holds for test objects
+        whose Mondrian category has no calibration examples.
         """
         if not self.fitted:
             raise RuntimeError(("Batch predictions requires a fitted "
@@ -932,6 +933,20 @@ class ConformalRegressor(ConformalPredictor):
                               f"in the following bins: {bins_to_show}; "\
                               "the corresponding intervals will be of " \
                               "maximum size") 
+            unseen = ~np.isin(bins, bin_values)
+            if unseen.any():
+                unseen_values = np.unique(bins[unseen])
+                if len(unseen_values) < 11:
+                    bins_to_show = " ".join([str(b) for b in unseen_values])
+                else:
+                    bins_to_show = " ".join([str(b) for b in
+                                             unseen_values[:10]]+['...'])
+                warnings.warn("there are no calibration examples " \
+                              f"in the following bins: {bins_to_show}; "\
+                              "the corresponding intervals will be of " \
+                              "maximum size")
+                intervals[unseen,0] = -np.inf
+                intervals[unseen,1] = np.inf
             bin_alpha = np.array([bin_alphas[b][alpha_indexes[b]]
                          if alpha_indexes[b]>=0 else np.inf
                          for b in range(len(bin_values))])
