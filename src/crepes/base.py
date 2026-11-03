@@ -2838,8 +2838,8 @@ def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
     else:
         score = np.sum(lower_errors[:cpd_index]*widths[:cpd_index]*sigma) \
             + np.sum(higher_errors[cpd_index+1:]*widths[cpd_index+1:]*sigma) \
-            + lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma \
-            + higher_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
+            + lower_errors[cpd_index]*(y-cpd[cpd_index]) \
+            + higher_errors[cpd_index]*(cpd[cpd_index+1]-y)
     return score
 
 def p_values_batch(alphas_cal, alphas_test, bins_cal=None, bins_test=None,
