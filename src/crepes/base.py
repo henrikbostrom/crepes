@@ -2540,17 +2540,11 @@ class ConformalPredictiveSystem(ConformalPredictor):
                         if len(bin_indexes[b]) > 0 and \
                            len(y_max_columns[b]) > 0:
                             result[bin_indexes[b],y_max_columns[b]] = y_max
+            percentile_results = result[:,no_prec_result_cols:]
             if y_min > -np.inf:
-                result[:,
-                       no_prec_result_cols:no_prec_result_cols \
-                       + len(percentile_indexes)]\
-                       [result[:,no_prec_result_cols:no_prec_result_cols \
-                               + len(percentile_indexes)]<y_min] = y_min
+                percentile_results[percentile_results<y_min] = y_min
             if y_max < np.inf:
-                result[:,no_prec_result_cols:no_prec_result_cols\
-                       + len(percentile_indexes)]\
-                       [result[:,no_prec_result_cols:no_prec_result_cols \
-                               + len(percentile_indexes)]>y_max] = y_max
+                percentile_results[percentile_results>y_max] = y_max
             no_prec_result_cols += len(percentile_indexes)
         toc = time.time()
         self.time_predict = toc-tic            
