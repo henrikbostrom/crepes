@@ -2671,8 +2671,14 @@ class ConformalPredictiveSystem(ConformalPredictor):
 
         Note
         ----
-        The metric ``CRPS`` is only available for batch evaluation, i.e., when
-        ``online=False``.
+        The metric ``CRPS`` is also available for online evaluation, i.e., when
+        ``online=True``; it is then computed for each test object from the
+        calibration set in effect when that object is predicted, so no
+        calibration-by-test matrix is generated. Test objects predicted with
+        an empty calibration set are skipped when averaging the score; this
+        can happen when ``warm_start=False``, and also for a Mondrian test
+        object whose category is absent from the calibration set. If all
+        test objects are skipped, the reported score is 0.
         
         Note
         ----
@@ -2689,9 +2695,6 @@ class ConformalPredictiveSystem(ConformalPredictor):
         elif metrics is None and online:
             metrics = ["error", "eff_mean", "eff_med", "ks_test", "time_fit",
                        "time_evaluate"]
-        if "CRPS" in metrics and online:
-            raise RuntimeError(("CRPS not available as metric for "
-                                "online calibration"))
         if type(y_hat) == list:
             y_hat = np.array(y_hat)
         if type(y) == list:
@@ -2753,6 +2756,11 @@ class ConformalPredictiveSystem(ConformalPredictor):
                                    * len(bin_indexes[b])
                                    for b in range(len(bin_values))])/len(y)
             test_results["CRPS"] = crps
+        if "CRPS" in metrics and online:
+            crps = calculate_crps_online(y_hat, y, sigmas, bins,
+                                         self.alphas, self.binned_alphas,
+                                         warm_start)
+            test_results["CRPS"] = crps
         if "ks_test" in metrics:
             if not online:
                 p_values = self.predict_p(y_hat, y, sigmas, bins, smoothing,
@@ -2767,6 +2775,99 @@ class ConformalPredictiveSystem(ConformalPredictor):
             test_results["time_evaluate"] = self.time_evaluate
         return test_results
     
+def calculate_crps_online(y_hat, y, sigmas, bins, alphas, binned_alphas,
+                          warm_start=True):
+    """
+    Calculate mean continuous-ranked probability score (crps)
+    for conformal predictive distributions obtained using online
+    calibration.
+
+    Parameters
+    ----------
+    y_hat : array-like of shape (n_values,)
+        predicted values
+    y : array-like of shape (n_values,)
+        correct labels
+    sigmas : array-like of shape (n_values,)
+        difficulty estimates
+    bins : array-like of shape (n_values,)
+        Mondrian categories
+    alphas : array-like of shape (c_values,)
+        sorted (normalized) residuals of the calibration examples
+    binned_alphas : tuple
+        bin values and sorted (normalized) residuals per bin of the
+        calibration examples, for a Mondrian conformal predictive system
+    warm_start : bool, default=True
+        extend original calibration set
+
+    Returns
+    -------
+    crps : float
+        mean continuous-ranked probability score for the conformal
+        predictive distributions; each test object is scored against
+        the calibration set in effect when that object is predicted,
+        and objects predicted with an empty calibration set are skipped
+        (which can happen when ``warm_start=False``, and also for a
+        Mondrian test object whose category is absent from the
+        calibration set). If all objects are skipped, 0 is returned.
+    """
+    scores = []
+    if bins is None:
+        if warm_start and alphas is not None:
+            alphas_cal = list(alphas)
+        else:
+            alphas_cal = []
+        if sigmas is not None:
+            for i in range(len(y_hat)):
+                if len(alphas_cal) > 0:
+                    cpd = y_hat[i] + sigmas[i]*np.array(alphas_cal)
+                    scores.append(calculate_crps(cpd.reshape(1, -1),
+                                                np.array(alphas_cal),
+                                                np.array([sigmas[i]]),
+                                                np.array([y[i]])))
+                insort(alphas_cal, (y[i]-y_hat[i])/sigmas[i])
+        else:
+            for i in range(len(y_hat)):
+                if len(alphas_cal) > 0:
+                    cpd = y_hat[i] + np.array(alphas_cal)
+                    scores.append(calculate_crps(cpd.reshape(1, -1),
+                                                np.array(alphas_cal),
+                                                np.array([1.0]),
+                                                np.array([y[i]])))
+                insort(alphas_cal, (y[i]-y_hat[i]))
+    else:
+        if warm_start and binned_alphas is not None:
+            bin_values_cal, bin_alphas_cal = binned_alphas
+            all_alphas_cal = {bin_values_cal[i] : list(bin_alphas_cal[i])
+                              for i in range(len(bin_values_cal))}
+        else:
+            all_alphas_cal = {}
+        bin_values, bin_indexes = np.unique(bins, return_inverse=True)
+        for b in range(len(bin_values)):
+            alphas_cal = all_alphas_cal.get(bin_values[b], [])
+            orig_indexes = np.arange(len(bins))[bin_indexes == b]
+            if sigmas is not None:
+                for i in orig_indexes:
+                    if len(alphas_cal) > 0:
+                        cpd = y_hat[i] + sigmas[i]*np.array(alphas_cal)
+                        scores.append(calculate_crps(cpd.reshape(1, -1),
+                                                    np.array(alphas_cal),
+                                                    np.array([sigmas[i]]),
+                                                    np.array([y[i]])))
+                    insort(alphas_cal, (y[i]-y_hat[i])/sigmas[i])
+            else:
+                for i in orig_indexes:
+                    if len(alphas_cal) > 0:
+                        cpd = y_hat[i] + np.array(alphas_cal)
+                        scores.append(calculate_crps(cpd.reshape(1, -1),
+                                                    np.array(alphas_cal),
+                                                    np.array([1.0]),
+                                                    np.array([y[i]])))
+                    insort(alphas_cal, (y[i]-y_hat[i]))
+    if len(scores) > 0:
+        return np.mean(scores)
+    return 0
+
 def calculate_crps(cpds, alphas, sigmas, y):
     """
     Calculate mean continuous-ranked probability score (crps)
@@ -2838,8 +2939,8 @@ def get_crps(cpd_index, lower_errors, higher_errors, widths, sigma, cpd, y):
     else:
         score = np.sum(lower_errors[:cpd_index]*widths[:cpd_index]*sigma) \
             + np.sum(higher_errors[cpd_index+1:]*widths[cpd_index+1:]*sigma) \
-            + lower_errors[cpd_index]*(y-cpd[cpd_index])*sigma \
-            + higher_errors[cpd_index]*(cpd[cpd_index+1]-y)*sigma
+            + lower_errors[cpd_index]*(y-cpd[cpd_index]) \
+            + higher_errors[cpd_index]*(cpd[cpd_index+1]-y)
     return score
 
 def p_values_batch(alphas_cal, alphas_test, bins_cal=None, bins_test=None,
@@ -4811,8 +4912,8 @@ class WrapRegressor():
 
         Note
         ----
-        The metric ``CRPS`` is only available for batch evaluation, i.e., when
-        ``online=False``, and will be ignored if the :class:`.WrapRegressor`
+        The metric ``CRPS`` is available for both batch and online evaluation,
+        and will be ignored if the :class:`.WrapRegressor`
         object has been calibrated with the (default) option ``cps=False``,
         i.e., the learner is wrapped with a :class:`.ConformalRegressor`.
 
