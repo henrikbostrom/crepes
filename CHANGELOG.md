@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- The metric `CRPS` is now available when evaluating a conformal predictive system with online calibration (`evaluate(..., online=True)`); the score of each test object is computed against the calibration set in effect when that object is predicted. Test objects predicted with an empty calibration set are skipped when averaging the score; this can happen with `warm_start=False`, and also for a Mondrian test object whose category is absent from the calibration set.
+
+### Fixes
+
+- Fixed the CRPS computation for normalized systems (sigma != 1): in `get_crps`, the two partial-interval terms around the observed value were multiplied by sigma once too often (see issue #40).
+
 ## v0.9.1 (12/6/2026)
 
 ### Features
